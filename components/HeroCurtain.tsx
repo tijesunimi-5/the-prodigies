@@ -24,7 +24,7 @@ export default function HeroCurtain() {
         <motion.div style={{ scale }} className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-black/10 z-10" />
           <Image
-            src="/img.jpg"
+            src="/fybgroup.jpg"
             alt="Graduation Background"
             fill
             className="object-cover blur-sm"
