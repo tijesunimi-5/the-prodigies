@@ -46,7 +46,7 @@ export default function HeroCurtain() {
           </p>
         </motion.div>
 
-        <ScrollIndicator progress={scrollYProgress} />
+        <ScrollIndicator  />
       </div>
     </section>
   );
