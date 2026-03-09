@@ -7,15 +7,22 @@ import ScrollIndicator from './ScrollIndicator';
 // Replace these URLs with your actual student/group photos
 const collageImages = [
   // Column 1
-  { src: '/fyb1.jpg', alt: 'Prodigy Member', col: 1 },
-  { src: '/fyb2.jpg', alt: 'Class Moment', col: 1 },
+  { src: '/daniel.jpg', alt: 'Prodigy Member', col: 1 },
+  { src: '/ifeoluwa.jpeg', alt: 'Prodigy Member', col: 1 },
+  { src: '/tomiwa.jpeg', alt: 'Class Moment', col: 1 },
+  { src: '/bolanle.jpg', alt: 'Class Moment', col: 1 },
   // Column 2
-  { src: '/fybgroup.jpg', alt: 'The Group', col: 2 },
-  { src: '/fyb3.jpg', alt: 'Candid Moment', col: 2 },
-  { src: '/fyb4.jpg', alt: 'Graduation Prep', col: 2 },
+  { src: '/beautyblack.jpeg', alt: 'The Group', col: 2 },
+  { src: '/favour.jpeg', alt: 'Candid Moment', col: 2 },
+  { src: '/precious.jpg', alt: 'Graduation Prep', col: 2 },
+  { src: '/victoria.jpg', alt: 'Graduation Prep', col: 2 },
+  // { src: '/precious.jpg', alt: 'Graduation Prep', col: 2 },
   // Column 3
-  { src: '/fyb5.jpg', alt: 'Achievement', col: 3 },
-  { src: '/fyb6.jpg', alt: 'Celebration', col: 3 },
+  { src: '/asher.jpg', alt: 'Achievement', col: 3 },
+  { src: '/badmus.jpg', alt: 'Celebration', col: 3 },
+  { src: '/praise.jpg', alt: 'Class Moment', col: 3 },
+  // { src: '/badmus.jpg', alt: 'Celebration', col: 3 },
+  // { src: '/badmus.jpg', alt: 'Celebration', col: 3 },
 ];
 
 export default function HeroCurtain() {

@@ -11,7 +11,6 @@ export default function LandingPage() {
       <Navbar />
       <HeroCurtain />
       <NarrativeSection />
-      <ParallaxCollage />
       <MeetFYB />
       <Footer />
     </main>
