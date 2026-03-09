@@ -68,7 +68,7 @@ export default function MemberCard({
       <div className={`absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#3B2A26] via-[#3B2A26]/80 to-transparent z-10 transition-all duration-500 ${showDetails ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"
         }`}>
         <h3 className="font-serif text-2xl md:text-3xl text-[#F5E9DA] mb-1">{name}</h3>
-        <p className="text-[10px] tracking-[0.3em] text-[#D4AF37] uppercase font-medium line-clamp-1">{unit}</p>
+        <p className="text-[10px] tracking-[0.3em] text-[#D4AF37] uppercase font-medium line-clamp-1">{skill}</p>
         <p className="mt-4 text-[10px] text-[#F5E9DA]/40 uppercase tracking-widest flex items-center gap-2">
           <Sparkles size={12} className="animate-pulse text-[#D4AF37]" /> Tap to view profile
         </p>
@@ -81,7 +81,7 @@ export default function MemberCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex flex-col justify-end p-6 bg-[#3B2A26]/75 backdrop-blur-[8px]"
+            className="absolute inset-0 z-20 flex flex-col justify-end p-6 bg-[#3B2A26]/75 backdrop-blur-[8px] pt-16"
           >
             <div className="space-y-4 mb-6 overflow-y-auto max-h-[82%] pr-2 custom-scrollbar">
               <div className="border-b border-[#D4AF37]/20 pb-2">

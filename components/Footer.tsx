@@ -8,7 +8,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="bg-[#1A1210] pt-32 pb-12 px-6 overflow-hidden">
+      <footer className="bg-[#1A1210] pt-32 pb-12 px-6 overflow-hidden mt-40">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col items-center text-center mb-24">
             <motion.div
