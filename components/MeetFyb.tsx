@@ -254,24 +254,74 @@ const graduates = [
     email: "imoleayoakinyemi@gmail.com"
     // portfolio: "https://tijesu.me"
   },
-  // {
-  //   name: "Mac Kennie",
-  //   // nickname: "The Visionary",
-  //   image: "/daniel.jpg",
-  //   dob: "July 26th",
-  //   unit: "Ushering, Sanctuary keepers, Evangelism, Prayer team, Drama, Protocol, Children's Teacher, Media, Sunday School",
-  //   department: "Pure and Applied Chemistry",
-  //   moment: "Sunday school period",
-  //   status: "Single & Purpose-driven",
-  //   skill: "Realtor",
-  //   hobbies: "Cooking and Singing",
-  //   quote: "Ps.34.9 - Oh, fear the Lord, you His saints! There is no want to those who fear Him.",
-  //   oneWord: "Driving",
-  //   origin: "Osun State",
-  //   whatsapp: "2348000000000",
-  //   email: "danielamos641@gmail.com"
-  //   // portfolio: "https://tijesu.me"
-  // },
+  {
+    name: "Mac Kennie",
+    // nickname: "The Visionary",
+    image: "/kenny.jpeg",
+    dob: "February 12th",
+    unit: "Ushering, Sanctuary keepers, Evangelism, Prayer team, Drama, Protocol, Children's Teacher, Media, ",
+    department: "Cyber Security",
+    moment: "Assigning people to the front row",
+    status: "Engaged",
+    skill: "Gadgets vendor",
+    hobbies: "Playing games",
+    quote: "In the beginning God created the heavens and the earth.",
+    oneWord: "Pilgrim",
+    origin: "Lagos State",
+    whatsapp: "2348000000000",
+    email: "owoiyakehinda@gmail.com"
+    // portfolio: "https://tijesu.me"
+  },
+  {
+    name: "Kayode Temitope",
+    // nickname: "The Visionary",
+    image: "/kayode-temi.jpeg",
+    dob: "Nov 17th",
+    unit: "Non-worker",
+    department: "Nutrition and Dietetics",
+    moment: "Nil",
+    status: "In a relationship",
+    skill: "Trading",
+    hobbies: "Dancing, reading",
+    quote: "Psalm 91",
+    oneWord: "Caring",
+    origin: "Osun State",
+    whatsapp: "2348000000000",
+    email: "temitopek242@gmail.com"
+    // portfolio: "https://tijesu.me"
+  },
+  {
+    name: "Akinleye Peace Aanuoluwa",
+    image: "/peace.jpg",
+    dob: "May 16th",
+    unit: "Sanctuary keepers, Evangelism, Hospitality",
+    department: "Anatomy",
+    moment: "Sunday school class",
+    status: "Single",
+    skill: "Fiyingbare Empire (Liquid soap, chinchin, etc",
+    hobbies: "Eating, sleeping and trying out new things",
+    quote: "Your word I have hidden in my heart, that I might not sin against You. (Psalm 119:11)",
+    oneWord: "Thoughtful",
+    origin: "Osun State",
+    whatsapp: "*****",
+    email: "akinleyepeace@gmail.com"
+  },
+  {
+    name: "",
+    image: "",
+    dob: "",
+    unit: "",
+    department: "",
+    moment: "",
+    status: "",
+    skill: "",
+    hobbies: "",
+    quote: "",
+    oneWord: "",
+    origin: "",
+    whatsapp: "",
+    email: ""
+  }
   // Add other members...
 ];
 
