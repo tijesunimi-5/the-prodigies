@@ -356,7 +356,7 @@ const graduates = [
   },
   {
     name: "Olaniyan Nathaniel Oluwapelumi",
-    image: "",
+    image: "/nath.jpg",
     dob: "November 7th",
     unit: "Ushering unit",
     department: "Nursing",
@@ -369,6 +369,22 @@ const graduates = [
     origin: "Oyo state",
     whatsapp: "",
     email: "olaniyannathanieloluwapelumi@gmail.com"
+  },
+  {
+    name: "Oyeleke Esther Odunayo",
+    image: "/esther.jpeg",
+    dob: "March 29th",
+    unit: "Ushering unit, Sanctuary keeper, RV",
+    department: "Nil",
+    moment: "Praise and worship",
+    status: "Engaged",
+    skill: "Makeup artist and perfume vendor",
+    hobbies: "Creating content",
+    quote: "Joshua 1:9",
+    oneWord: "Industrious",
+    origin: "Osun state",
+    whatsapp: "",
+    email: "oyelekee71@gmail.com"
   },
   // Add other members...
 ];

@@ -3,6 +3,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Heart, Camera, Trophy, CheckCircle2, TrendingUp, Crown } from "lucide-react";
 import Image from "next/image";
+import TicketStatusFloat from "@/components/events/TicketStatusFloat";
+import Navbar from "@/components/NavBar";
 
 const categories = [
   { id: "prestige", label: "The Titles", icon: <Trophy size={16} />, awards: ["Mr. Prodigy", "Miss Prodigy"] },
@@ -29,6 +31,7 @@ export default function UnifiedVotePage() {
   return (
     <main className="min-h-screen bg-[#F5E9DA] pt-32 pb-20 px-4 md:px-8">
       <div className="max-w-[1400px] mx-auto">
+        <Navbar />
 
         {/* Header */}
         <header className="text-center mb-16">
@@ -141,6 +144,7 @@ export default function UnifiedVotePage() {
           </aside>
 
         </div>
+        <TicketStatusFloat />
       </div>
     </main>
   );

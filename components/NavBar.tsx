@@ -28,7 +28,7 @@ export default function Navbar() {
       >
         {/* Standard Links */}
         {navLinks.map((link) => (
-          <Link key={link.name} href={link.href} className="px-5 py-2 text-sm font-sans tracking-wide text-[#3B2A26] hover:text-[#D4AF37] transition-colors duration-300">
+          <Link key={link.name} href={link.href} className="px-5 py-2 text-sm font-sans tracking-wide text-white font-bold hover:text-[#D4AF37] transition-colors duration-300">
             {link.name}
           </Link>
         ))}

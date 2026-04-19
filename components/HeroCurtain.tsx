@@ -11,18 +11,21 @@ const collageImages = [
   { src: '/ifeoluwa.jpeg', alt: 'Prodigy Member', col: 1 },
   { src: '/tomiwa.jpeg', alt: 'Class Moment', col: 1 },
   { src: '/bolanle.jpg', alt: 'Class Moment', col: 1 },
+  { src: '/imole.jpeg', alt: 'Class Moment', col: 1 },
+  { src: '/oyewole-vic.jpg', alt: 'Class Moment', col: 1 },
   // Column 2
   { src: '/beautyblack.jpeg', alt: 'The Group', col: 2 },
   { src: '/favour.jpeg', alt: 'Candid Moment', col: 2 },
   { src: '/precious.jpg', alt: 'Graduation Prep', col: 2 },
   { src: '/victoria.jpg', alt: 'Graduation Prep', col: 2 },
-  // { src: '/precious.jpg', alt: 'Graduation Prep', col: 2 },
+  { src: '/alex.jpg', alt: 'Graduation Prep', col: 2 },
   // Column 3
   { src: '/asher.jpg', alt: 'Achievement', col: 3 },
   { src: '/badmus.jpg', alt: 'Celebration', col: 3 },
   { src: '/praise.jpg', alt: 'Class Moment', col: 3 },
-  // { src: '/badmus.jpg', alt: 'Celebration', col: 3 },
-  // { src: '/badmus.jpg', alt: 'Celebration', col: 3 },
+  { src: '/peace.jpg', alt: 'Celebration', col: 3 },
+  { src: '/olayide.jpg', alt: 'Celebration', col: 3 },
+  { src: '/kenny.jpeg', alt: 'Celebration', col: 3 },
 ];
 
 export default function HeroCurtain() {
