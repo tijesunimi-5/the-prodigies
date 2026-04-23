@@ -1,54 +1,55 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Ticket, Users, BarChart3, Settings, LogOut } from "lucide-react";
-
-const sidebarLinks = [
-  { name: "Overview", href: "/admin", icon: <LayoutDashboard size={18} /> },
-  { name: "Tickets & Payments", href: "/admin/tickets", icon: <Ticket size={18} /> },
-  // { name: "Class Registry", href: "/admin/registry", icon: <Users size={18} /> },
-  { name: "Voting Stats", href: "/admin/votes", icon: <BarChart3 size={18} /> },
-];
+import { LayoutDashboard, Ticket, Users, BarChart3, LogOut, Menu, X } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-[#1A1210]">
-      {/* --- Admin Sidebar --- */}
-      <aside className="w-64 bg-[#3B2A26] border-r border-[#D4AF37]/10 flex flex-col fixed h-full">
-        <div className="p-8 border-b border-[#D4AF37]/10">
+    <div className="min-h-screen bg-[#F5E9DA]">
+      {/* --- Mobile Header --- */}
+      <div className="lg:hidden bg-[#3B2A26] p-4 flex justify-between items-center sticky top-0 z-[160]">
+        <h1 className="font-serif text-[#D4AF37] text-xl">Admin Hub</h1>
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-[#D4AF37]">
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* --- Sidebar --- */}
+      <aside className={`
+        fixed pt-16 inset-y-0 left-0 z-155 w-64 bg-[#3B2A26] border-r border-[#D4AF37]/10 transition-transform duration-300 transform
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0 lg:static lg:h-screen
+      `}>
+        <div className="p-8 border-b border-[#D4AF37]/10 hidden lg:block">
           <h1 className="font-serif text-[#F5E9DA] text-2xl">Admin <span className="text-[#D4AF37]">Hub</span></h1>
-          <p className="text-[9px] uppercase tracking-[0.3em] text-[#F5E9DA]/40 mt-1">Prodigies &apos;26 Control</p>
         </div>
 
-        <nav className="flex-1 p-6 space-y-2">
-          {sidebarLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-4 px-4 py-3 rounded-sm transition-all text-sm uppercase tracking-widest font-bold ${isActive
-                    ? "bg-[#D4AF37] text-[#3B2A26]"
-                    : "text-[#F5E9DA]/60 hover:bg-white/5 hover:text-[#F5E9DA]"
-                  }`}
-              >
-                {link.icon} {link.name}
-              </Link>
-            );
-          })}
+        <nav className="p-6 space-y-2">
+          {[
+            { name: "Overview", href: "/admin", icon: <LayoutDashboard size={18} /> },
+            { name: "Tickets", href: "/admin/tickets", icon: <Ticket size={18} /> },
+            // { name: "Registry", href: "/admin/registry", icon: <Users size={18} /> },
+            { name: "Votes", href: "/admin/votes", icon: <BarChart3 size={18} /> },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsSidebarOpen(false)}
+              className={`flex items-center gap-4 px-4 py-3 rounded-sm text-sm uppercase tracking-widest font-bold ${pathname === link.href ? "bg-[#D4AF37] text-[#3B2A26]" : "text-[#F5E9DA]/60 hover:text-[#F5E9DA]"
+                }`}
+            >
+              {link.icon} {link.name}
+            </Link>
+          ))}
         </nav>
-
-        <div className="p-6 border-t border-[#D4AF37]/10">
-          <button className="flex items-center gap-4 px-4 py-3 text-[#F5E9DA]/40 hover:text-red-400 transition-colors text-xs uppercase tracking-widest font-bold">
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
       </aside>
 
-      {/* --- Main Content Area --- */}
-      <main className="flex-1 ml-64 p-10 bg-[#F5E9DA]">
+      {/* --- Main Content --- */}
+      <main className="flex-1 p-6 lg:p-10 overflow-x-hidden">
         {children}
       </main>
     </div>

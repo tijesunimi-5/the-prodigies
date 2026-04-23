@@ -2,33 +2,43 @@
 import { motion } from "framer-motion";
 import { Check, X, Eye, Clock, CreditCard } from "lucide-react";
 
-// Placeholder data for the pending queue
 const pendingPayments = [
   { id: "TX-1001", name: "Egbedeyi Tomiwa", event: "Dinner Night", amount: "₦4,500", coupon: "PRODIGY500", timestamp: "10 mins ago" },
   { id: "TX-1002", name: "Amos Daniel", event: "Dinner Night", amount: "₦5,000", coupon: "None", timestamp: "25 mins ago" },
 ];
 
 export default function AdminOverview() {
+
+  // --- SIMULATION LOGIC ---
+  const simulateApproval = (name: string) => {
+    // 1. Get the ticket from local storage
+    const savedData = localStorage.getItem("prodigy_ticket");
+
+    if (savedData) {
+      const ticket = JSON.parse(savedData);
+
+      // 2. Update status to 'verified'
+      ticket.status = "verified";
+
+      // 3. Save it back
+      localStorage.setItem("prodigy_ticket", JSON.stringify(ticket));
+
+      alert(`Success! ${name}'s payment has been verified. Their QR code is now active.`);
+
+      // 4. Reload to sync UI
+      window.location.reload();
+    } else {
+      alert("No local registration found to approve. Please register on the Booking page first!");
+    }
+  };
+
   return (
     <div className="space-y-10">
-      {/* Stats Cards */}
+      {/* ... Stats Cards (Same as your code) ... */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: "Total Revenue", value: "₦125,500", icon: <CreditCard className="text-[#D4AF37]" /> },
-          { label: "Pending Approvals", value: "12", icon: <Clock className="text-orange-500" /> },
-          { label: "Confirmed Guests", value: "48", icon: <Check className="text-green-600" /> },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-sm shadow-sm border border-[#3B2A26]/5">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] uppercase tracking-widest text-[#3B2A26]/40 font-bold">{stat.label}</span>
-              {stat.icon}
-            </div>
-            <p className="text-3xl font-serif text-[#3B2A26]">{stat.value}</p>
-          </div>
-        ))}
+        {/* ... card content ... */}
       </div>
 
-      {/* Approval Table */}
       <div className="bg-white rounded-sm shadow-sm border border-[#3B2A26]/5 overflow-hidden">
         <div className="p-6 border-b border-[#3B2A26]/5 flex justify-between items-center">
           <h3 className="font-serif text-xl text-[#3B2A26]">Payment Verification Queue</h3>
@@ -68,7 +78,16 @@ export default function AdminOverview() {
                   </td>
                   <td className="p-4 text-right pr-6 space-x-2">
                     <button className="p-2 text-red-400 hover:bg-red-50 rounded-sm transition-colors" title="Decline"><X size={18} /></button>
-                    <button className="p-2 text-green-600 hover:bg-green-50 rounded-sm transition-colors" title="Approve"><Check size={18} /></button>
+
+                    {/* ATTACHED FUNCTION HERE */}
+                    <button
+                      onClick={() => simulateApproval(payment.name)}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-sm transition-colors"
+                      title="Approve"
+                    >
+                      <Check size={18} />
+                    </button>
+
                   </td>
                 </tr>
               ))}
