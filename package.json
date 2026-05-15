@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "github:neondatabase/serverless",
     "@prisma/client": "^6.19.3",
     "cloudinary": "^2.9.0",
     "framer-motion": "^12.35.0",
