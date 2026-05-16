@@ -16,13 +16,15 @@ export async function POST(request: Request) {
   }
 
   const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  const buffer = Buffer.from(new Uint8Array(arrayBuffer));
 
-  return new Promise((resolve) => {
+  // Explicitly assign NextResponse generic constraint to the wrapping Promise instance
+  return new Promise<NextResponse>((resolve) => {
     cloudinary.uploader
       .upload_stream({ folder: "prodigies_receipts" }, (error, result) => {
         if (error) {
           resolve(NextResponse.json({ error: error.message }, { status: 500 }));
+          return;
         }
         resolve(NextResponse.json({ url: result?.secure_url }));
       })
