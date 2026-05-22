@@ -4,66 +4,57 @@ import { sql } from "@/lib/db";
 export async function POST(request: Request) {
   try {
     const { email, pin, name, isNewUser } = await request.json();
+    const cleanEmail = email.toLowerCase().trim();
 
-    if (!email || !pin) {
-      return NextResponse.json(
-        { error: "Missing identity attributes" },
-        { status: 400 },
-      );
+    if (!cleanEmail || !pin) {
+      return NextResponse.json({ error: "Missing identity attributes" }, { status: 400 });
     }
 
-    // 1. Search if an entry under this email exists in the database
+    // 1. Look inside the dedicated User table
     const userResult = await sql`
-      SELECT "fullName", "accountPin" FROM "Registration" 
-      WHERE email = ${email} 
+      SELECT "fullName", pin FROM "User" 
+      WHERE email = ${cleanEmail} 
       LIMIT 1
     `;
 
-    // 2. Handle completely new registration profile setup
+    // 2. Handle Sign Up Workflow
     if (userResult.length === 0) {
       if (!isNewUser) {
-        // Send explicit flag to frontend to trigger name setup workflow
+        // Tell frontend to pop open the "Full Name" input field
         return NextResponse.json({ code: "USER_NOT_FOUND" }, { status: 404 });
       }
 
-      // If user inputs their name and pin for the first time, create their core system pass
-      // We temporarily save an empty verification shell that populates on payment
-      return NextResponse.json(
-        { email, name, status: "initialized" },
-        { status: 200 },
-      );
-    }
+      if (!name) {
+        return NextResponse.json({ error: "Name is required for registration" }, { status: 400 });
+      }
 
-    // 3. Handle Existing User Verification
-    const registeredUser = userResult[0];
-
-    // If they already have a ticket but haven't initialized an account PIN, bind this one as their pass
-    if (!registeredUser.accountPin) {
-      await sql`
-        UPDATE "Registration" 
-        SET "accountPin" = ${pin} 
-        WHERE email = ${email}
+      // FIX: Actually save the user to the database right now!
+      const newUser = await sql`
+        INSERT INTO "User" (email, "fullName", pin)
+        VALUES (${cleanEmail}, ${name}, ${pin})
+        RETURNING email, "fullName" as name
       `;
-      return NextResponse.json({ email, name: registeredUser.fullName });
+
+      return NextResponse.json({
+        email: newUser[0].email,
+        name: newUser[0].name,
+        message: "Profile created securely in cloud"
+      });
     }
 
-    // If they have a PIN, evaluate it securely
-    if (registeredUser.accountPin !== pin) {
-      return NextResponse.json(
-        { error: "Invalid Security Access PIN" },
-        { status: 401 },
-      );
+    // 3. Handle Login Workflow
+    const user = userResult[0];
+    if (user.pin !== pin) {
+      return NextResponse.json({ error: "Invalid Security Access PIN" }, { status: 401 });
     }
 
     return NextResponse.json({
-      email,
-      name: registeredUser.fullName,
+      email: cleanEmail,
+      name: user.fullName
     });
+
   } catch (error) {
     console.error("Auth System Error:", error);
-    return NextResponse.json(
-      { error: "Identity core connection failed" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Identity core connection failed" }, { status: 500 });
   }
 }
