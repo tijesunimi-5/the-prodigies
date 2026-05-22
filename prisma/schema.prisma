@@ -8,18 +8,24 @@ datasource db {
 }
 
 model Registration {
-  id           String   @id @default(cuid())
-  fullName     String
-  email        String   @unique
-  phone        String
-  eventName    String
-  amountPaid   Int
-  couponUsed   String?
-  receiptUrl   String?  // Cloudinary URL for the OPay screenshot
-  status       String   @default("pending") // pending, verified, declined
-  accessCode   String?  @unique // Generated once verified (QR data)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  fullName    String
+  email       String   // Removed @unique so one person can register multiple times or use friends' emails
+  phone       String
+  eventName   String
+  amountPaid  Int
+  couponUsed  String?
+  receiptUrl  String?  // Cloudinary URL for the OPay screenshot (Shared across a group booking)
+  status      String   @default("pending") // pending, verified, declined
+  
+  // Security & Cross-Device Sync Upgrades
+  buyerEmail  String   // Tracks the account owner who paid for the ticket cluster
+  accountPin  String?  // 4-digit secure access PIN for logging into the profile
+  passcode    String?  // 6-digit backup 2FA verification PIN for manual check-in at the door
+  
+  accessCode  String?  @unique // Generated once verified (QR data code)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Nominee {
