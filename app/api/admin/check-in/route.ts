@@ -1,6 +1,35 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search");
+
+    if (!search || search.trim().length < 3) {
+      return NextResponse.json([]);
+    }
+
+    const queryTerm = `%${search.trim()}%`;
+
+    const matches = await sql`
+      SELECT "fullName" as name, email, "eventName" as event, status, "accessCode"
+      FROM "Registration"
+      WHERE "fullName" ILIKE ${queryTerm} OR email ILIKE ${queryTerm}
+      ORDER BY "fullName" ASC
+      LIMIT 10
+    `;
+
+    return NextResponse.json(matches);
+  } catch (error) {
+    console.error("GET Lookup Error:", error);
+    return NextResponse.json(
+      { error: "Failed to search registry" },
+      { status: 500 },
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { accessCode } = await request.json();
