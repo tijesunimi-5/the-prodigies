@@ -21,10 +21,18 @@ export default function AuthOverlay() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 1. Check if user is already logged in on mount
+
   useEffect(() => {
     const saved = localStorage.getItem("prodigy_user_session");
     if (saved) setSession(JSON.parse(saved));
+
+    // FIX: Listen for a global "trigger-login" event from the checkout cards
+    const handleTriggerLogin = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener("trigger-login", handleTriggerLogin);
+    return () => window.removeEventListener("trigger-login", handleTriggerLogin);
   }, []);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {

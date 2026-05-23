@@ -102,3 +102,53 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const { accessCode, passcode } = await request.json();
+
+    if (!accessCode || !passcode) {
+      return NextResponse.json(
+        { error: "Missing identity attributes" },
+        { status: 400 },
+      );
+    }
+
+    const ticketResult = await sql`
+      SELECT id, "fullName", "eventName", passcode, status FROM "Registration" 
+      WHERE "accessCode" = ${accessCode} LIMIT 1
+    `;
+
+    if (ticketResult.length === 0)
+      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+    const attendee = ticketResult[0];
+
+    if (attendee.status === "checked_in")
+      return NextResponse.json(
+        { status: "fraud", error: "Attendee already inside" },
+        { status: 409 },
+      );
+
+    if (attendee.passcode !== passcode.trim()) {
+      return NextResponse.json(
+        {
+          status: "invalid",
+          error: "SECURITY ERROR: Invalid 6-Digit backup PIN!",
+        },
+        { status: 401 },
+      );
+    }
+
+    await sql`UPDATE "Registration" SET status = 'checked_in' WHERE "accessCode" = ${accessCode}`;
+    return NextResponse.json({
+      status: "success",
+      name: attendee.fullName,
+      event: attendee.eventName,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Secure authorization update failed" },
+      { status: 500 },
+    );
+  }
+}

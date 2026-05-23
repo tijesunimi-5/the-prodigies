@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, Clock, Users, Ticket, CheckCircle } from "lucide-react";
 import Image from "next/image";
@@ -39,11 +39,27 @@ export default function BookPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReserved, setIsReserved] = useState<number[]>([]);
 
-  const handleOpenRegistration = (event: typeof events[0]) => {
+  // Intercept the checkout trigger to ensure an authenticated session exists
+  const handleOpenBooking = (event: typeof events[0]) => {
+    // Check if an active cloud profile pass exists on the browser
+    const activeUser = localStorage.getItem("prodigy_user_session");
+
+    if (!activeUser) {
+      // Block modal and dispatch custom login event to AuthOverlay
+      alert("Authentication Required:\nPlease connect your secure Profile Pass before purchasing an entry ticket.");
+
+      const triggerEvent = new CustomEvent("trigger-login");
+      window.dispatchEvent(triggerEvent);
+      return;
+    }
+
+    // User is signed in! Proceed to process booking type
     if (event.numericPrice === 0) {
-      // Free events logic
+      // Free events reservation state logging
       setIsReserved([...isReserved, event.id]);
+      alert(`Success! Your spot for ${event.title} has been reserved.`);
     } else {
+      // Paid events initialization window
       setSelectedEvent(event);
       setIsModalOpen(true);
     }
@@ -53,7 +69,7 @@ export default function BookPage() {
     <main className="min-h-screen bg-[#F5E9DA] pt-32 pb-20 px-6">
       <div className="max-w-6xl mx-auto">
         <Navbar />
-        {/* Header Content... Same as before */}
+
         <header className="text-center mb-20">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center gap-4 mb-4">
             <div className="w-12 h-px bg-[#D4AF37] self-center" />
@@ -92,10 +108,11 @@ export default function BookPage() {
                   </div>
                 </div>
 
+                {/* Updated to trigger our protective gate logic function */}
                 <button
-                  onClick={() => handleOpenRegistration(event)}
+                  onClick={() => handleOpenBooking(event)}
                   disabled={isReserved.includes(event.id)}
-                  className="w-full sm:w-fit px-12 py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center justify-center gap-3"
+                  className="w-full sm:w-fit px-12 py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center justify-center gap-3 cursor-pointer"
                 >
                   {isReserved.includes(event.id) ? (
                     <> <CheckCircle size={14} /> Reservation Sent </>
@@ -110,7 +127,7 @@ export default function BookPage() {
 
         {/* Modal Logic */}
         <RegistrationModal
-          key={selectedEvent?.id || 'none'} 
+          key={selectedEvent?.id || 'none'}
           isOpen={isModalOpen}
           onCloseAction={() => setIsModalOpen(false)}
           eventDetails={selectedEvent ? {
