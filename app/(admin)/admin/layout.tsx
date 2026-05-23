@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <nav className="p-6 space-y-2">
           {[
-            { name: "Overview", href: "/admin", icon: <LayoutDashboard size={18} /> },
+            // { name: "Overview", href: "/admin", icon: <LayoutDashboard size={18} /> },
             { name: "Tickets", href: "/admin/tickets", icon: <Ticket size={18} /> },
             // { name: "Registry", href: "/admin/registry", icon: <Users size={18} /> },
             { name: "Votes", href: "/admin/votes", icon: <BarChart3 size={18} /> },

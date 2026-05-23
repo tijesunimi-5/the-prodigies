@@ -1,52 +1,69 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 
+interface Attendee {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const {
-      fullName,
-      email,
-      phone,
+      attendees,
+      buyerEmail,
       eventName,
       amountPaid,
       couponUsed,
       receiptUrl,
     } = body;
 
-    // 1. Check if user already exists using plain SQL
-    const existing = await sql`
-      SELECT id FROM "Registration" 
-      WHERE email = ${email} AND "eventName" = ${eventName} 
-      LIMIT 1
-    `;
-
-    if (existing.length > 0) {
+    if (!attendees || attendees.length === 0 || !buyerEmail) {
       return NextResponse.json(
-        { error: "You are already registered!" },
+        { error: "Missing required registration package records." },
         { status: 400 },
       );
     }
 
-    // 2. Insert the data
-    await sql`
-      INSERT INTO "Registration" ("fullName", email, phone, "eventName", "amountPaid", "couponUsed", "receiptUrl")
-      VALUES (${fullName}, ${email}, ${phone}, ${eventName}, ${amountPaid}, ${couponUsed}, ${receiptUrl})
-    `;
+    // Loop through each attendee to insert their personal unique row
+    for (const attendee of attendees as Attendee[]) {
+      // Prevent overlapping duplicate registration profiles for the same singular event
+      const existingRecord = await sql`
+        SELECT id FROM "Registration" 
+        WHERE email = ${attendee.email} AND "eventName" = ${eventName} 
+        LIMIT 1
+      `;
+
+      if (existingRecord.length > 0) {
+        return NextResponse.json(
+          {
+            error: `Attendee with email ${attendee.email} is already registered for this event!`,
+          },
+          { status: 400 },
+        );
+      }
+
+      // Insert individual row mapped to their personal email, but tracking the buyer identity
+      await sql`
+        INSERT INTO "Registration" 
+          ("fullName", email, phone, "eventName", "amountPaid", "couponUsed", "receiptUrl", "buyerEmail", status)
+        VALUES 
+          (${attendee.name}, ${attendee.email}, ${attendee.phone}, ${eventName}, ${amountPaid}, ${couponUsed}, ${receiptUrl}, ${buyerEmail}, 'pending')
+      `;
+    }
 
     return NextResponse.json(
-      { message: "Registration Successful" },
+      { message: "All registrations queued successfully" },
       { status: 201 },
     );
   } catch (error: unknown) {
-    // We check if the error is an object with a message property
-    const errorMessage = error instanceof Error ? error.message : "Database connection failed";
-    
-    console.error("Database Error:", errorMessage);
-    
+    const errorMessage =
+      error instanceof Error ? error.message : "Database pipeline exception";
+    console.error("Group Insertion Error:", errorMessage);
     return NextResponse.json(
-      { error: "Database connection failed", details: errorMessage }, 
-      { status: 500 }
+      { error: "Registration transaction failed", details: errorMessage },
+      { status: 500 },
     );
   }
 }
