@@ -303,7 +303,7 @@ const graduates = [
     quote: "Your word I have hidden in my heart, that I might not sin against You. (Psalm 119:11)",
     oneWord: "Thoughtful",
     origin: "Osun State",
-    whatsapp: "*****",
+    whatsapp: "07052550457",
     email: "akinleyepeace@gmail.com"
   },
   {
@@ -385,6 +385,23 @@ const graduates = [
     origin: "Osun state",
     whatsapp: "",
     email: "oyelekee71@gmail.com"
+  },
+  {
+    name: "Idowu S.A Tijesunimi",
+    image: "/teelight-pic.jpg",
+    dob: "April 04",
+    unit: "Choir, Redeemed Vanguard",
+    department: "Computer Science",
+    moment: "Drama ministration, Doctrinal teaching Session, Praise + Thanksgiving",
+    status: "Engaged",
+    skill: "Software Engineer",
+    hobbies: "Coding, Gaming",
+    quote: "Decision: If it's Easy, do it Easy; If it's Hard, Do it Hard; Just get it Done",
+    oneWord: "Builder",
+    origin: "Oyo state",
+    whatsapp: "07018268171",
+    email: "tijesunimiidowu16@gmail.com",
+    portfolio: "https://dev-tijesunimi.vercel.app"
   },
   // Add other members...
 ];
