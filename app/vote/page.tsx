@@ -6,7 +6,7 @@ import Image from "next/image";
 import TicketStatusFloat from "@/components/events/TicketStatusFloat";
 import Navbar from "@/components/NavBar";
 
-// Your production-verified static graduates schema layout
+// Master list matching completely across application states
 const graduates = [
   { name: "Amos Daniel Eniola", email: "danielamos641@gmail.com", image: "/daniel.jpg" },
   { name: "Adebayo Precious Adewunmi", email: "preciousadebayo51@gmail.com", image: "/precious.jpg" },
@@ -30,10 +30,17 @@ const graduates = [
   { name: "Oyewole Victoria Adesewa", email: "victoriaoyewole31@gmail.com", image: "/oyewole-vic.jpg" },
   { name: "Olaniyan Nathaniel Oluwapelumi", email: "olaniyannathanieloluwapelumi@gmail.com", image: "/nath.jpg" },
   { name: "Oyeleke Esther Odunayo", email: "oyelekee71@gmail.com", image: "/esther.jpeg" },
-  { name: "Idowu Tijesunimi Samuel", email: "tijesunimiidowu16@gmail.com", image: "/teelight-pic.jpg" }
+  { name: "Idowu S.A Tijesunimi", email: "tijesunimiidowu16@gmail.com", image: "/teelight-pic.jpg" },
+  { name: "Alao Abisola Rachel", email: "alaoabisola24@gmail.com", image: "/abisola.jpg" },
+  { name: "Ashaju Abiodun Elizabeth", email: "asiwajuabiodun16@gmail.com", image: "/abiodun.jpg" },
+  { name: "Tolulope Abigeal Solanke", email: "solanketolulope990@gmail.com", image: "" },
+  { name: "Aluko Chichi Temiloluwa", email: "alukochichi@gmail.com", image: "/chichi.jpg" },
+  { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfiment.jpeg" },
+  { name: "Babalola Josephine Adesola", email: "babalolajosephineadesola@gmail.com", image: "/babalola.jpg" },
+  { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "/nifemi.jpg" },
+  { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" }
 ];
 
-// Matched perfectly to your 6 nomination award database keys
 const votingCategories = [
   { id: "most_active", label: "Most Active", icon: <Sparkles size={14} /> },
   { id: "best_dressed_male", label: "Best Dressed (M)", icon: <Trophy size={14} /> },
@@ -43,13 +50,12 @@ const votingCategories = [
   { id: "outstanding_student", label: "Outstanding Student", icon: <User size={14} /> }
 ];
 
-// Helper to cross-reference images cleanly by name strings with inclusive matching rules
 const findImageByName = (name: string) => {
-  const match = graduates.find(g => 
+  const match = graduates.find(g =>
     g.name.toLowerCase().trim().includes(name.toLowerCase().trim()) ||
     name.toLowerCase().trim().includes(g.name.toLowerCase().trim())
   );
-  return match ? match.image : null; // Return null if there's no asset match on disk
+  return match ? match.image : null;
 };
 
 export default function TransformedVotePage() {
@@ -57,10 +63,9 @@ export default function TransformedVotePage() {
   const [userSession, setUserSession] = useState<{ email: string; name: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Live dynamic arrays from Neon
   const [dbNominees, setDbNominees] = useState<{ category: string; name: string }[]>([]);
   const [dbStandings, setDbStandings] = useState<{ category: string; name: string; votes: number }[]>([]);
-  
+
   const [ballot, setBallot] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasVotedAny, setHasVotedAny] = useState(false);
@@ -118,12 +123,6 @@ export default function TransformedVotePage() {
     }
   };
 
-  const triggerGlobalLogin = () => {
-    const triggerEvent = new CustomEvent("trigger-login");
-    window.dispatchEvent(triggerEvent);
-  };
-
-  // Filter dynamic lists to match the currently selected category tab
   const filteredNominees = dbNominees.filter(n => n.category === activeTab);
   const filteredLeaderboard = dbStandings.filter(s => s.category === activeTab).sort((a, b) => b.votes - a.votes);
   const activeLabel = votingCategories.find(c => c.id === activeTab)?.label || "";
@@ -144,7 +143,7 @@ export default function TransformedVotePage() {
           <Trophy size={48} className="text-[#D4AF37] mx-auto animate-bounce" />
           <h2 className="font-serif text-3xl text-[#3B2A26]">Secure Ballot Station</h2>
           <p className="text-sm text-[#3B2A26]/70 leading-relaxed">To ensure encrypted, transparent vote counts and prevent duplicate ballots, you must connect your active Profile Pass.</p>
-          <button onClick={triggerGlobalLogin} className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase font-black tracking-widest hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer">Sync Profile Pass</button>
+          <button onClick={() => window.dispatchEvent(new CustomEvent("trigger-login"))} className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase font-black tracking-widest hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer">Sync Profile Pass</button>
         </div>
       </main>
     );
@@ -164,15 +163,13 @@ export default function TransformedVotePage() {
           <h1 className="text-5xl md:text-7xl font-serif text-[#3B2A26]">Awards & Standings</h1>
         </header>
 
-        {/* Tab Selection Area */}
         <div className="flex flex-wrap gap-2.5 justify-center mb-12 max-w-4xl mx-auto">
           {votingCategories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveTab(cat.id)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-full text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
-                activeTab === cat.id ? "bg-[#3B2A26] text-[#F5E9DA] shadow-xl" : "bg-white/50 text-[#3B2A26]/50 hover:bg-white"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 rounded-full text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer ${activeTab === cat.id ? "bg-[#3B2A26] text-[#F5E9DA] shadow-xl" : "bg-white/50 text-[#3B2A26]/50 hover:bg-white"
+                }`}
             >
               {cat.icon} {cat.label}
             </button>
@@ -180,8 +177,7 @@ export default function TransformedVotePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
-          {/* LEFT AREA: NOMINATED CANDIDATES GRID */}
+
           <div className="lg:col-span-8 space-y-6">
             <h2 className="text-2xl font-serif text-[#3B2A26] border-l-4 border-[#D4AF37] pl-4 mb-6">
               Official Nominees: {activeLabel}
@@ -191,9 +187,6 @@ export default function TransformedVotePage() {
               <div className="bg-white/30 border border-dashed border-[#3B2A26]/10 p-12 text-center rounded-sm">
                 <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">
                   No nominations submitted for this category yet.
-                </p>
-                <p className="text-[11px] text-gray-400 mt-1 font-sans">
-                  Candidates will pop up here automatically as soon as users fill out their nomination forms.
                 </p>
               </div>
             ) : (
@@ -207,19 +200,17 @@ export default function TransformedVotePage() {
                       key={idx}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleSelectNominee(activeTab, nominee.name)}
-                      className={`relative cursor-pointer rounded-sm overflow-hidden border-2 transition-all duration-300 ${
-                        isSelected ? "border-[#D4AF37] bg-white shadow-lg" : "border-transparent opacity-85 hover:opacity-100"
-                      }`}
+                      className={`relative cursor-pointer rounded-sm overflow-hidden border-2 transition-all duration-300 ${isSelected ? "border-[#D4AF37] bg-white shadow-lg" : "border-transparent opacity-85 hover:opacity-100"
+                        }`}
                     >
-                      {/* FALLBACK-PROOF IMAGE BOX TARGET CONTAINER */}
                       <div className="aspect-[4/5] relative bg-stone-800 flex flex-col items-center justify-center text-center p-4">
                         {displayImage ? (
-                          <Image 
-                            src={displayImage} 
-                            alt={nominee.name} 
-                            fill 
+                          <Image
+                            src={displayImage}
+                            alt={nominee.name}
+                            fill
                             sizes="(max-w-768px) 50vw, 33vw"
-                            className="object-cover" 
+                            className="object-cover"
                           />
                         ) : (
                           <div className="flex flex-col items-center gap-2 text-[#D4AF37]/40">
@@ -243,7 +234,6 @@ export default function TransformedVotePage() {
             )}
           </div>
 
-          {/* RIGHT AREA: LIVE RUNNING LEADERBOARD */}
           <aside className="lg:col-span-4">
             <div className="sticky top-32 bg-[#3B2A26] rounded-sm p-8 shadow-2xl border border-[#D4AF37]/20">
               <div className="flex items-center justify-between mb-8">
@@ -269,11 +259,11 @@ export default function TransformedVotePage() {
                           <span className="text-[#D4AF37] font-serif italic text-lg w-4">{index + 1}</span>
                           <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[#D4AF37]/30 bg-stone-700 flex items-center justify-center">
                             {avatarImg ? (
-                              <Image 
-                                src={avatarImg} 
-                                alt="" 
-                                fill 
-                                className="object-cover" 
+                              <Image
+                                src={avatarImg}
+                                alt=""
+                                fill
+                                className="object-cover"
                               />
                             ) : (
                               <User size={16} className="text-[#D4AF37]/50" />
@@ -307,9 +297,6 @@ export default function TransformedVotePage() {
                     "Submit My Ballot"
                   )}
                 </button>
-                <p className="mt-4 text-[9px] text-center text-[#F5E9DA]/40 uppercase tracking-widest leading-relaxed">
-                  Votes are encrypted and stored in the Covenant Registry.
-                </p>
               </div>
             </div>
           </aside>

@@ -29,7 +29,8 @@ interface MemberProps {
   oneWord: string;
   origin: string;
   whatsapp: string;
-  email: string;
+  email?: string;
+  portfolio?: string;
 }
 
 export default function MemberCard({
@@ -151,6 +152,7 @@ export default function MemberCard({
               >
                 <Mail size={14} /> Contact
               </a>
+              
             </div>
           </motion.div>
         )}

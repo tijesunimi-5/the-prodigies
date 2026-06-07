@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Award, CheckCircle, User, Loader2, Sparkles, Heart, Star, Trophy } from "lucide-react";
+import { Award, CheckCircle, User, Loader2, Sparkles, Heart, Star, Trophy, Check } from "lucide-react";
 import Image from "next/image";
 import Navbar from "@/components/NavBar";
 import TicketStatusFloat from "@/components/events/TicketStatusFloat";
 
-// Your verified static graduates schema layout
+// Cleaned and structured 30-member master list configuration block
 const graduates = [
   { name: "Amos Daniel Eniola", email: "danielamos641@gmail.com", image: "/daniel.jpg" },
   { name: "Adebayo Precious Adewunmi", email: "preciousadebayo51@gmail.com", image: "/precious.jpg" },
@@ -30,10 +30,17 @@ const graduates = [
   { name: "Oyewole Victoria Adesewa", email: "victoriaoyewole31@gmail.com", image: "/oyewole-vic.jpg" },
   { name: "Olaniyan Nathaniel Oluwapelumi", email: "olaniyannathanieloluwapelumi@gmail.com", image: "/nath.jpg" },
   { name: "Oyeleke Esther Odunayo", email: "oyelekee71@gmail.com", image: "/esther.jpeg" },
-  { name: "Idowu Tijesunimi Samuel", email: "tijesunimiidowu16@gmail.com", image: "/teelight-pic.jpg" }
+  { name: "Idowu S.A Tijesunimi", email: "tijesunimiidowu16@gmail.com", image: "/teelight-pic.jpg" },
+  { name: "Alao Abisola Rachel", email: "alaoabisola24@gmail.com", image: "/abisola.jpg" },
+  { name: "Ashaju Abiodun Elizabeth", email: "asiwajuabiodun16@gmail.com", image: "/abiodun.jpg" },
+  { name: "Tolulope Abigeal Solanke", email: "solanketolulope990@gmail.com", image: "" },
+  { name: "Aluko Chichi Temiloluwa", email: "alukochichi@gmail.com", image: "/chichi.jpg" },
+  { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfiment.jpeg" },
+  { name: "Babalola Josephine Adesola", email: "babalolajosephineadesola@gmail.com", image: "/babalola.jpg" },
+  { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "/nifemi.jpg" },
+  { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" }
 ];
 
-// Matched perfectly to your 6 nomination award database keys
 const categories = [
   { id: "most_active", title: "Most Active", desc: "Always present, driving energy, and pushing the class forward.", icon: <Sparkles size={16} /> },
   { id: "best_dressed_male", title: "Best Dressed (Male)", desc: "Dapper setups, clean tailoring, and style consistency.", icon: <Trophy size={16} /> },
@@ -53,7 +60,8 @@ export default function NominatePage() {
   const [userSession, setUserSession] = useState<{ email: string; name: string } | null>(null);
   const [completed, setCompleted] = useState<Record<string, { name: string }>>({});
   const [loadingInitial, setLoadingInitial] = useState(true);
-  const [submittingName, setSubmittingName] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<typeof graduates[0] | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("prodigy_user_session");
@@ -64,7 +72,6 @@ export default function NominatePage() {
     const user = JSON.parse(saved);
     setUserSession(user);
 
-    // Load what this user has already nominated from Neon
     fetch(`/api/nominate?email=${encodeURIComponent(user.email)}`)
       .then((res) => res.json())
       .then((data: NominationRow[]) => {
@@ -78,17 +85,30 @@ export default function NominatePage() {
       .finally(() => setLoadingInitial(false));
   }, []);
 
-  const handleSelectNomination = async (candidate: typeof graduates[0]) => {
-    if (!userSession || completed[activeCategory] || submittingName) return;
-    setSubmittingName(candidate.name);
+  useEffect(() => {
+    setSelectedCandidate(null);
+  }, [activeCategory]);
+
+  const handleCardClick = (candidate: typeof graduates[0]) => {
+    if (completed[activeCategory] || isSubmitting) return;
+    if (selectedCandidate?.name === candidate.name) {
+      setSelectedCandidate(null);
+    } else {
+      setSelectedCandidate(candidate);
+    }
+  };
+
+  const handleConfirmNomination = async () => {
+    if (!userSession || !selectedCandidate || completed[activeCategory] || isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
       const res = await fetch("/api/nominate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nomineeEmail: candidate.email,
-          nomineeName: candidate.name,
+          nomineeEmail: selectedCandidate.email,
+          nomineeName: selectedCandidate.name,
           category: activeCategory,
           buyerEmail: userSession.email
         })
@@ -97,14 +117,15 @@ export default function NominatePage() {
       const data = await res.json();
 
       if (res.ok) {
-        setCompleted((prev) => ({ ...prev, [activeCategory]: { name: candidate.name } }));
+        setCompleted((prev) => ({ ...prev, [activeCategory]: { name: selectedCandidate.name } }));
+        setSelectedCandidate(null);
       } else {
         alert(data.error || "Submission rejected.");
       }
     } catch (e) {
       alert("Network exception processing ballot.");
     } finally {
-      setSubmittingName(null);
+      setIsSubmitting(false);
     }
   };
 
@@ -152,7 +173,6 @@ export default function NominatePage() {
           <p className="text-xs text-[#3B2A26]/50 uppercase tracking-widest mt-2">Phase 1: Select Your Peers From The Registry</p>
         </header>
 
-        {/* --- Category Selector Tabs --- */}
         <div className="flex flex-wrap gap-2.5 justify-center mb-12 max-w-5xl mx-auto">
           {categories.map((cat) => {
             const categoryDone = completed[cat.id];
@@ -160,9 +180,7 @@ export default function NominatePage() {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-full text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer relative ${activeCategory === cat.id
-                    ? "bg-[#3B2A26] text-[#F5E9DA] shadow-xl"
-                    : "bg-white/50 text-[#3B2A26]/50 hover:bg-white"
+                className={`flex items-center gap-2 px-5 py-3 rounded-full text-[9px] uppercase tracking-wider font-bold transition-all cursor-pointer relative ${activeCategory === cat.id ? "bg-[#3B2A26] text-[#F5E9DA] shadow-xl" : "bg-white/50 text-[#3B2A26]/50 hover:bg-white"
                   }`}
               >
                 {cat.icon}
@@ -175,41 +193,62 @@ export default function NominatePage() {
           })}
         </div>
 
-        {/* --- Active Category Info Bar --- */}
-        <div className="max-w-4xl mx-auto bg-white border border-[#3B2A26]/5 p-6 rounded-sm shadow-sm mb-10 text-center md:text-left md:flex md:items-center md:justify-between gap-6">
-          <div>
+        <div className="max-w-5xl mx-auto bg-white border border-[#3B2A26]/5 p-6 rounded-sm shadow-sm mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="text-center md:text-left">
             <h2 className="text-xl font-serif text-[#3B2A26] font-bold flex items-center justify-center md:justify-start gap-2 mb-1">
               {currentCategoryMeta?.icon} {currentCategoryMeta?.title}
             </h2>
             <p className="text-xs text-[#3B2A26]/60 font-sans">{currentCategoryMeta?.desc}</p>
           </div>
-          {alreadyNominated && (
-            <div className="mt-4 md:mt-0 bg-green-50 border border-green-100 px-4 py-2 rounded-sm text-green-800 text-center shrink-0">
-              <p className="text-[8px] uppercase tracking-wider font-black opacity-60">Your Choice Saved</p>
-              <p className="text-xs font-bold font-serif">{alreadyNominated.name}</p>
-            </div>
-          )}
+
+          <div className="flex justify-center shrink-0">
+            {alreadyNominated ? (
+              <div className="bg-green-50 border border-green-100 px-6 py-2.5 rounded-sm text-green-800 text-center min-w-[200px]">
+                <p className="text-[8px] uppercase tracking-wider font-black opacity-60">Your Choice Locked</p>
+                <p className="text-xs font-bold font-serif">{alreadyNominated.name}</p>
+              </div>
+            ) : selectedCandidate ? (
+              <button
+                onClick={handleConfirmNomination}
+                disabled={isSubmitting}
+                className="bg-[#3B2A26] text-[#F5E9DA] border border-transparent px-6 py-3 text-[10px] uppercase font-black tracking-widest rounded-sm hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center gap-2 cursor-pointer shadow-md"
+              >
+                {isSubmitting ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <>
+                    <Check size={12} /> Confirm Nomination for {selectedCandidate.name.split(" ")[0]}
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="border border-dashed border-stone-200 text-stone-400 px-6 py-3 text-[9px] uppercase tracking-wider font-bold rounded-sm bg-stone-50/50">
+                Click a candidate below to begin
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* --- Face Registry Grid (The List of FYB) --- */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
           {graduates.map((grad, idx) => {
-            const isUserChoice = alreadyNominated?.name === grad.name;
-            const isDisabled = !!alreadyNominated || submittingName === grad.name;
+            const isConfirmedChoice = alreadyNominated?.name === grad.name;
+            const isPendingSelection = selectedCandidate?.name === grad.name;
+            const isAnyConfirmed = !!alreadyNominated;
 
             return (
               <motion.div
                 key={idx}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => !isDisabled && handleSelectNomination(grad)}
-                className={`relative rounded-sm overflow-hidden border-2 transition-all duration-300 ${isUserChoice
+                whileTap={!isAnyConfirmed ? { scale: 0.98 } : undefined}
+                onClick={() => handleCardClick(grad)}
+                className={`relative rounded-sm overflow-hidden border-2 transition-all duration-300 ${isConfirmedChoice
                     ? "border-green-600 bg-white shadow-lg scale-[1.02]"
-                    : alreadyNominated
-                      ? "border-transparent opacity-40 cursor-not-allowed"
-                      : "border-transparent opacity-90 hover:opacity-100 hover:border-[#D4AF37] cursor-pointer"
+                    : isPendingSelection
+                      ? "border-[#D4AF37] bg-white shadow-xl scale-[1.02]"
+                      : isAnyConfirmed
+                        ? "border-transparent opacity-40 cursor-not-allowed"
+                        : "border-transparent opacity-90 hover:opacity-100 hover:border-[#D4AF37]/40 cursor-pointer"
                   }`}
               >
-                {/* Image Wrap */}
                 <div className="aspect-[4/5] relative bg-stone-800 flex flex-col items-center justify-center text-center p-4">
                   {grad.image ? (
                     <Image
@@ -226,21 +265,21 @@ export default function NominatePage() {
                     </div>
                   )}
 
-                  {/* Loading/Success Overlay overlays */}
-                  {submittingName === grad.name && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
-                      <Loader2 size={24} className="animate-spin text-white" />
+                  {isPendingSelection && (
+                    <div className="absolute inset-0 bg-[#D4AF37]/10 flex items-center justify-center z-10 border border-[#D4AF37]">
+                      <span className="bg-[#D4AF37] text-[#3B2A26] text-[8px] font-black uppercase tracking-widest px-2.5 py-1 shadow-md rounded-xs">
+                        Selected
+                      </span>
                     </div>
                   )}
 
-                  {isUserChoice && (
+                  {isConfirmedChoice && (
                     <div className="absolute inset-0 bg-green-600/20 flex items-center justify-center z-10">
                       <CheckCircle size={32} className="text-green-600 bg-white rounded-full p-0.5 shadow-md" />
                     </div>
                   )}
                 </div>
 
-                {/* Name Label */}
                 <div className="p-2.5 text-center bg-white border-t border-stone-50">
                   <p className="text-[9px] uppercase tracking-wider font-bold text-[#3B2A26] truncate">
                     {grad.name}
@@ -252,7 +291,7 @@ export default function NominatePage() {
         </div>
 
       </div>
-      <TicketStatusFloat  />
+      <TicketStatusFloat />
     </main>
   );
 }
