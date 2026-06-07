@@ -47,7 +47,7 @@ const categories = [
   { id: "best_dressed_female", title: "Best Dressed (Female)", desc: "Stunning elegance, high-end aesthetics, and graceful presence.", icon: <Award size={16} /> },
   { id: "most_reserved", title: "Most Reserved", desc: "Calm, deeply observant, moving with quiet excellence and poise.", icon: <Heart size={16} /> },
   { id: "most_industrious", title: "Most Industrious / Entrepreneur", desc: "The ultimate hustler, building businesses and showcasing drive.", icon: <Star size={16} /> },
-  { id: "outstanding_student", title: "Outstanding Student", desc: "Academic excellence balanced with phenomenal character.", icon: <User size={16} /> }
+  // { id: "outstanding_student", title: "Outstanding Student", desc: "Academic excellence balanced with phenomenal character.", icon: <User size={16} /> }
 ];
 
 type NominationRow = {
