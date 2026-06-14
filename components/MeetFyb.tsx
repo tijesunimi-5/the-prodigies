@@ -531,6 +531,38 @@ const graduates = [
     whatsapp: "",
     email: "Mathew.seun14@gmail.com"
   }, 
+  {
+    name: "Akinleye Fulfilment Ooreofeoluwa",
+    image: "",
+    dob: "28th of July",
+    unit: "Sanctuary Keepers, Drama Unit",
+    department: "Physiology",
+    moment: "Drama ministration and Sunday school",
+    status: "Single",
+    skill: "Fashion Designer",
+    hobbies: "Listening to music",
+    quote: "Psalm 20:7  Some trust in chariots, and some in horses; But we will remember the name of the Lord our God.",
+    oneWord: "Resilient",
+    origin: "Osun",
+    whatsapp: "08078229729",
+    email: "akinleyefulfilment@gmail.com"
+  },
+  {
+    name: "Rapheal Sinaayomi Victor",
+    image: "",
+    dob: "20th of April",
+    unit: "Choir, Media",
+    department: "Cyber Security",
+    moment: "Every moment",
+    status: "Single",
+    skill: "Graphic Designer, Musician",
+    hobbies: "Eating, Sleeping, and playing the piano",
+    quote: "Psalm 23:1. The lord is my shepherd, I shall not want",
+    oneWord: "Creative",
+    origin: "Oyo",
+    whatsapp: "09018627779",
+    email: ""
+  },
   // {
   //   name: "",
   //   image: "",
