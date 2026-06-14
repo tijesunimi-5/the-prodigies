@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Trophy, BarChart3, Users, Loader2, Sparkles, CheckCircle, ShieldAlert } from "lucide-react";
+import { Trophy, BarChart3, Users, Loader2, Sparkles, CheckCircle, ShieldAlert, ShieldCheck, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Production configurations for the full 30+ member registry
+// Production configurations for the full 31-member registry
 const graduates = [
   { name: "Amos Daniel Eniola", email: "danielamos641@gmail.com", image: "/daniel.jpg" },
   { name: "Adebayo Precious Adewunmi", email: "preciousadebayo51@gmail.com", image: "/precious.jpg" },
@@ -54,11 +54,21 @@ interface DataRow {
   isApproved?: boolean;
 }
 
+interface AuditLogRow {
+  id: number;
+  category: string;
+  nominee: string;
+  nominator: string;
+  timestamp: string;
+}
+
 export default function VotesAdmin() {
-  const [viewMode, setViewMode] = useState<"votes" | "nominations">("votes");
+  const [viewMode, setViewMode] = useState<"votes" | "nominations" | "audit">("votes");
   const [loading, setLoading] = useState(true);
   const [rawNominations, setRawNominations] = useState<DataRow[]>([]);
   const [rawVotes, setRawVotes] = useState<DataRow[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogRow[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetchAnalyticsData = useCallback(async () => {
@@ -68,6 +78,7 @@ export default function VotesAdmin() {
         const data = await res.json();
         setRawNominations(data.nominations || []);
         setRawVotes(data.votes || []);
+        setAuditLogs(data.auditLogs || []);
       }
     } catch (e) {
       console.error("Admin analytical pull error:", e);
@@ -98,7 +109,6 @@ export default function VotesAdmin() {
       });
 
       if (res.ok) {
-        // Update local state immediately for better UX
         setRawNominations(prev =>
           prev.map(item =>
             item.name === nominee.name && item.category === nominee.category
@@ -127,128 +137,196 @@ export default function VotesAdmin() {
   }
 
   const activeDataset = viewMode === "votes" ? rawVotes : rawNominations;
+  const filteredAuditLogs = auditLogs.filter(log =>
+    log.nominator.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.nominee.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-10 w-full">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#3B2A26]/10 pb-6">
         <div>
           <h1 className="text-4xl font-serif text-[#3B2A26]">Registry Analytics</h1>
-          <p className="text-sm text-[#3B2A26]/60 mt-1">Real-time standings and shortlist management.</p>
+          <p className="text-sm text-[#3B2A26]/60 mt-1">Real-time standings, shortlist updates, and fraud counters.</p>
         </div>
 
-        <div className="flex bg-black/5 p-1 rounded-sm border border-[#3B2A26]/5 self-start md:self-center shrink-0">
+        <div className="flex bg-black/5 p-1 rounded-sm border border-[#3B2A26]/5 self-start md:self-center shrink-0 flex-wrap gap-1">
           <button
             onClick={() => setViewMode("votes")}
-            className={`px-4 py-2.5 rounded-xs text-[10px] uppercase font-black tracking-wider transition-all cursor-pointer flex items-center gap-2 ${viewMode === "votes" ? "bg-[#3B2A26] text-[#F5E9DA] shadow-md" : "text-[#3B2A26]/50 hover:text-[#3B2A26]"
+            className={`px-3 py-2 rounded-xs text-[10px] uppercase font-black tracking-wider transition-all cursor-pointer flex items-center gap-2 ${viewMode === "votes" ? "bg-[#3B2A26] text-[#F5E9DA] shadow-md" : "text-[#3B2A26]/50 hover:text-[#3B2A26]"
               }`}
           >
             <BarChart3 size={12} /> Final Ballots Cast
           </button>
           <button
             onClick={() => setViewMode("nominations")}
-            className={`px-4 py-2.5 rounded-xs text-[10px] uppercase font-black tracking-wider transition-all cursor-pointer flex items-center gap-2 ${viewMode === "nominations" ? "bg-[#3B2A26] text-[#F5E9DA] shadow-md" : "text-[#3B2A26]/50 hover:text-[#3B2A26]"
+            className={`px-3 py-2 rounded-xs text-[10px] uppercase font-black tracking-wider transition-all cursor-pointer flex items-center gap-2 ${viewMode === "nominations" ? "bg-[#3B2A26] text-[#F5E9DA] shadow-md" : "text-[#3B2A26]/50 hover:text-[#3B2A26]"
               }`}
           >
             <Users size={12} /> Phase 1 Nominations
+          </button>
+          <button
+            onClick={() => setViewMode("audit")}
+            className={`px-3 py-2 rounded-xs text-[10px] uppercase font-black tracking-wider transition-all cursor-pointer flex items-center gap-2 ${viewMode === "audit" ? "bg-amber-700 text-white shadow-md" : "text-[#3B2A26]/50 hover:text-[#3B2A26]"
+              }`}
+          >
+            <ShieldCheck size={12} /> Security Audit Log
           </button>
         </div>
       </header>
 
       <div className="space-y-8 w-full">
-        {votingCategories.map((cat) => {
-          const categoryPool = activeDataset.filter((item) => item.category === cat.id);
-          const aggregateSum = categoryPool.reduce((total, cur) => total + cur.count, 0);
+        {viewMode !== "audit" ? (
+          votingCategories.map((cat) => {
+            const categoryPool = activeDataset.filter((item) => item.category === cat.id);
+            const aggregateSum = categoryPool.reduce((total, cur) => total + cur.count, 0);
 
-          return (
-            <div key={cat.id} className="bg-white p-6 sm:p-8 border border-[#3B2A26]/5 rounded-sm shadow-sm relative overflow-hidden w-full">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 pb-4 border-b border-stone-50">
-                <div className="flex items-center gap-3">
-                  <Trophy size={18} className="text-[#D4AF37] shrink-0" />
-                  <h2 className="text-xl font-serif text-[#3B2A26] font-bold">{cat.label}</h2>
+            return (
+              <div key={cat.id} className="bg-white p-6 sm:p-8 border border-[#3B2A26]/5 rounded-sm shadow-sm relative overflow-hidden w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8 pb-4 border-b border-stone-50">
+                  <div className="flex items-center gap-3">
+                    <Trophy size={18} className="text-[#D4AF37] shrink-0" />
+                    <h2 className="text-xl font-serif text-[#3B2A26] font-bold">{cat.label}</h2>
+                  </div>
+                  <span className="text-[10px] font-black text-[#3B2A26]/50 tracking-widest uppercase bg-black/5 px-3 py-1 rounded-full self-start sm:self-center">
+                    {aggregateSum} Total {viewMode === "votes" ? "Votes" : "Nominations"}
+                  </span>
                 </div>
-                <span className="text-[10px] font-black text-[#3B2A26]/50 tracking-widest uppercase bg-black/5 px-3 py-1 rounded-full self-start sm:self-center">
-                  {aggregateSum} Total {viewMode === "votes" ? "Votes" : "Nominations"}
-                </span>
+
+                {categoryPool.length === 0 ? (
+                  <div className="py-8 text-center text-gray-400 border border-dashed border-gray-100 rounded-sm">
+                    <Sparkles size={16} className="mx-auto text-gray-300 mb-2" />
+                    <p className="text-[10px] uppercase tracking-wider font-bold">No active data points compiled yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <AnimatePresence mode="popLayout">
+                      {categoryPool.map((nominee, idx) => {
+                        const percentageRatio = aggregateSum > 0 ? (nominee.count / aggregateSum) * 100 : 0;
+                        const uniqueKey = `${cat.id}-${nominee.name}`;
+                        const isApproved = !!nominee.isApproved;
+
+                        return (
+                          <motion.div
+                            key={nominee.name}
+                            layout
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-2 w-full border-b border-stone-50 pb-4 last:border-0 last:pb-0"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-bold uppercase tracking-widest text-[#3B2A26]">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="opacity-30 text-[10px] font-mono shrink-0">0{idx + 1}</span>
+                                <span className="truncate">{nominee.name}</span>
+                                {viewMode === "nominations" && isApproved && (
+                                  <span className="bg-green-100 text-green-800 text-[7px] font-black tracking-widest px-2 py-0.5 rounded-full lowercase grow-0 shrink-0">
+                                    shortlisted
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
+                                <span className="font-mono text-stone-500">
+                                  {nominee.count} ({percentageRatio.toFixed(1)}%)
+                                </span>
+
+                                {viewMode === "nominations" && (
+                                  <button
+                                    disabled={actionLoading === uniqueKey}
+                                    onClick={() => handleToggleShortlist(nominee, isApproved)}
+                                    className={`px-3 py-1.5 rounded-xs text-[8px] tracking-wider font-black uppercase transition-all cursor-pointer flex items-center gap-1 border ${isApproved
+                                        ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                                        : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                      }`}
+                                  >
+                                    {actionLoading === uniqueKey ? (
+                                      <Loader2 size={10} className="animate-spin" />
+                                    ) : isApproved ? (
+                                      <> <ShieldAlert size={10} /> Drop </>
+                                    ) : (
+                                      <> <CheckCircle size={10} /> Approve </>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="h-2 w-full bg-[#F5E9DA]/60 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${percentageRatio}%` }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className={`h-full ${cat.color}`}
+                              />
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className="bg-white border rounded-sm shadow-sm p-6 w-full space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4">
+              <div>
+                <h2 className="text-xl font-serif text-[#3B2A26] font-bold">Anti-Fraud Audit Log</h2>
+                <p className="text-xs text-gray-400 font-sans mt-0.5">Cross-reference nominator accounts to track double entries or external bypass attempts.</p>
               </div>
 
-              {categoryPool.length === 0 ? (
-                <div className="py-8 text-center text-gray-400 border border-dashed border-gray-100 rounded-sm">
-                  <Sparkles size={16} className="mx-auto text-gray-300 mb-2" />
-                  <p className="text-[10px] uppercase tracking-wider font-bold">No active data points compiled yet</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <AnimatePresence mode="popLayout">
-                    {categoryPool.map((nominee, idx) => {
-                      const percentageRatio = aggregateSum > 0 ? (nominee.count / aggregateSum) * 100 : 0;
-                      const uniqueKey = `${cat.id}-${nominee.name}`;
-                      const isApproved = !!nominee.isApproved;
-
-                      return (
-                        <motion.div
-                          key={nominee.name}
-                          layout
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="space-y-2 w-full border-b border-stone-50 pb-4 last:border-0 last:pb-0"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-bold uppercase tracking-widest text-[#3B2A26]">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="opacity-30 text-[10px] font-mono shrink-0">0{idx + 1}</span>
-                              <span className="truncate">{nominee.name}</span>
-                              {viewMode === "nominations" && isApproved && (
-                                <span className="bg-green-100 text-green-800 text-[7px] font-black tracking-widest px-2 py-0.5 rounded-full lowercase grow-0 shrink-0">
-                                  shortlisted
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
-                              <span className="font-mono text-stone-500">
-                                {nominee.count} ({percentageRatio.toFixed(1)}%)
-                              </span>
-
-                              {/* Toggle Logic: Approve nominees to make them appear on the public /vote page */}
-                              {viewMode === "nominations" && (
-                                <button
-                                  disabled={actionLoading === uniqueKey}
-                                  onClick={() => handleToggleShortlist(nominee, isApproved)}
-                                  className={`px-3 py-1.5 rounded-xs text-[8px] tracking-wider font-black uppercase transition-all cursor-pointer flex items-center gap-1 border ${isApproved
-                                      ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                                      : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                                    }`}
-                                >
-                                  {actionLoading === uniqueKey ? (
-                                    <Loader2 size={10} className="animate-spin" />
-                                  ) : isApproved ? (
-                                    <> <ShieldAlert size={10} /> Drop </>
-                                  ) : (
-                                    <> <CheckCircle size={10} /> Approve </>
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="h-2 w-full bg-[#F5E9DA]/60 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${percentageRatio}%` }}
-                              transition={{ duration: 0.8, ease: "easeOut" }}
-                              className={`h-full ${cat.color}`}
-                            />
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
-                </div>
-              )}
+              <div className="relative w-full sm:w-72">
+                <Search size={14} className="absolute left-3 top-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search nominator email or target..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-stone-50 border rounded-sm pl-9 pr-3 py-2.5 text-xs outline-none focus:border-amber-700 font-sans"
+                />
+              </div>
             </div>
-          );
-        })}
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse font-sans text-xs">
+                <thead>
+                  <tr className="bg-[#3B2A26] text-[#F5E9DA] uppercase tracking-widest text-[9px] font-black">
+                    <th className="p-4">Timestamp</th>
+                    <th className="p-4">Category Track</th>
+                    <th className="p-4">Nominator Identity (Account Row)</th>
+                    <th className="p-4">Target Nominee Selection</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {filteredAuditLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-gray-400 uppercase tracking-widest text-[10px] font-bold">
+                        No matching audit records flagged
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAuditLogs.map((log) => {
+                      const categoryLabel = votingCategories.find(c => c.id === log.category)?.label || log.category;
+                      return (
+                        <tr key={log.id} className="hover:bg-stone-50/80 transition-colors">
+                          <td className="p-4 font-mono text-stone-500 whitespace-nowrap">{log.timestamp}</td>
+                          <td className="p-4 font-bold text-[#3B2A26] whitespace-nowrap">{categoryLabel}</td>
+                          <td className="p-4 font-mono text-stone-600 font-bold bg-amber-50/30">
+                            {log.nominator}
+                          </td>
+                          <td className="p-4 font-serif text-sm font-black text-stone-800">{log.nominee}</td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
