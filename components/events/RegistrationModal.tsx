@@ -250,10 +250,10 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                   <div className="bg-[#3B2A26] text-[#F5E9DA] p-6 rounded-sm shadow-inner">
                     <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] mb-3 font-bold">Transfer Grand Total</p>
                     <p className="text-3xl font-serif text-[#D4AF37] font-black mb-4">₦{finalPrice.toLocaleString()}</p>
-                    <p className="text-[9px] uppercase tracking-widest text-white/40 mb-1">OPay Account Number</p>
-                    <p className="text-xl font-mono select-all tracking-wider text-white font-bold">7012345678</p>
-                    <p className="text-[11px] text-[#F5E9DA]/60 mt-1">Amos Daniel</p>
-                    <button type="button" onClick={() => copyToClipboard("7012345678")} className="mx-auto text-[9px] text-[#D4AF37] border border-[#D4AF37]/30 px-5 py-2 mt-4 block uppercase font-bold hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all">
+                    <p className="text-[9px] uppercase tracking-widest text-white/40 mb-1">KUDA Account Number</p>
+                      <p className="text-xl font-mono select-all tracking-wider text-white font-bold">2047541429</p>
+                    <p className="text-[11px] text-[#F5E9DA]/60 mt-1">Araoye Busolami</p>
+                    <button type="button" onClick={() => copyToClipboard("2047541429")} className="mx-auto text-[9px] text-[#D4AF37] border border-[#D4AF37]/30 px-5 py-2 mt-4 block uppercase font-bold hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all">
                       {copied ? "Copied Account" : "Copy Account Details"}
                     </button>
                   </div>
