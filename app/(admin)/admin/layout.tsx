@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <h1 className="font-serif text-[#F5E9DA] text-2xl">Admin <span className="text-[#D4AF37]">Hub</span></h1>
         </div>
 
-        <nav className="p-6 space-y-2">
+        <nav className="p-6 mt-12 space-y-2">
           {[
             { name: "Tickets", href: "/admin/tickets", icon: <Ticket size={18} /> },
             { name: "Votes", href: "/admin/votes", icon: <BarChart3 size={18} /> },

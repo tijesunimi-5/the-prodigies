@@ -29,13 +29,15 @@ const graduates = [
   { name: "Oyeleke Esther Odunayo", email: "oyelekee71@gmail.com", image: "/esther.jpeg" },
   { name: "Idowu S.A Tijesunimi", email: "tijesunimiidowu16@gmail.com", image: "/teelight-pic.jpg" },
   { name: "Alao Abisola Rachel", email: "alaoabisola24@gmail.com", image: "/abisola.jpg" },
-  { name: "Ashaju Abiodun Elizabeth", email: "asiwajuabiodun16@gmail.com", image: "" },
+  { name: "Ashaju Abiodun Elizabeth", email: "asiwajuabiodun16@gmail.com", image: "/abiodun.jpg" },
   { name: "Tolulope Abigeal Solanke", email: "solanketolulope990@gmail.com", image: "" },
   { name: "Aluko Chichi Temiloluwa", email: "alukochichi@gmail.com", image: "" },
   { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfiment.jpeg" },
   { name: "Babalola Josephine Adesola", email: "babalolajosephineadesola@gmail.com", image: "/babalola.jpg" },
-  { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "" },
-  { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "" }
+  { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "/nifemi.jpg" },
+  { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" },
+  {name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfilment.jpeg"},
+  { name: "Rapheal Sinaayomi Victor", email: "", image: "/victor.jpg" }
 ];
 
 const votingCategories = [
@@ -44,7 +46,7 @@ const votingCategories = [
   { id: "best_dressed_female", label: "Best Dressed (Female)", color: "bg-[#3B2A26]" },
   { id: "most_reserved", label: "Most Reserved", color: "bg-stone-500" },
   { id: "most_industrious", label: "Most Industrious", color: "bg-[#D4AF37]" },
-  { id: "outstanding_student", label: "Outstanding Student", color: "bg-amber-800" }
+  // { id: "outstanding_student", label: "Outstanding Student", color: "bg-amber-800" }
 ];
 
 interface DataRow {

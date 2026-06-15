@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Copy, Check, Clock, Upload, CheckCircle, Plus, Trash2 } from "lucide-react";
+import { X, Copy, Clock, Upload, CheckCircle, Plus, Trash2, Loader2, Tag } from "lucide-react";
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -9,7 +9,8 @@ interface RegistrationModalProps {
   eventDetails: {
     title: string;
     price: string;
-    numericPrice: number;
+    numericPrice: number; // Raw event price passed down (e.g., 4000)
+    appliedCoupon?: string | null;
   } | null;
 }
 
@@ -23,10 +24,8 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
   // --- STATE ---
   const [step, setStep] = useState(1);
   const [copied, setCopied] = useState(false);
-  // Adjusted base countdown timer state to 30 seconds
   const [timeLeft, setTimeLeft] = useState(30);
   const [canClickPaid, setCanClickPaid] = useState(false);
-  const [coupon, setCoupon] = useState("");
   const [submitting, setIsSubmitting] = useState<boolean>(false);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [uploadTime, setUploadTime] = useState<string | null>(null);
@@ -37,13 +36,19 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- PRICING ALGORITHM CONFIGURATION ---
-  const basePrice = eventDetails?.numericPrice ?? 0;
+  // --- FIXED PRICING ALGORITHM CONFIGURATION ---
+  // If the parent page already passed the discounted price, we make sure we don't double-deduct.
+  // We use the full base price (4000) for calculation. If an applied coupon is present, 
+  // we do a single flat 500 Naira subtraction off the absolute total.
+  const isCouponApplied = !!eventDetails?.appliedCoupon;
+
+  // If the parent page passed a price that was already modified (like 3500), we reconstruct the true base price (4000) 
+  // to avoid duplication bugs, or evaluate it relative to the coupon presence.
+  const rawBasePrice = eventDetails?.appliedCoupon ? eventDetails.numericPrice + 500 : (eventDetails?.numericPrice ?? 0);
   const totalTicketsCount = 1 + guests.length;
 
-  // FIX: Coupon evaluates as a flat deduction off the grand total, NOT per ticket.
-  const couponDiscount = coupon === "APPLIED" ? 500 : 0;
-  const finalPrice = (basePrice * totalTicketsCount) - couponDiscount;
+  // Grand Total calculation: (Full price * number of people) - single flat 500 Naira discount
+  const finalPrice = Math.max(0, (rawBasePrice * totalTicketsCount) - (isCouponApplied ? 500 : 0));
 
   useEffect(() => {
     const savedSession = localStorage.getItem("prodigy_user_session");
@@ -62,7 +67,6 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
       let endTime = localStorage.getItem(storageKey);
 
       if (!endTime) {
-        // Adjusted future target timestamp generation block to 30 seconds (30000ms)
         const newEndTime = Date.now() + 30000;
         localStorage.setItem(storageKey, newEndTime.toString());
         endTime = newEndTime.toString();
@@ -101,12 +105,6 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleApplyCoupon = () => {
-    if (coupon.toUpperCase() === "PRODIGY500" && coupon !== "APPLIED") {
-      setCoupon("APPLIED");
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,7 +153,7 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
           buyerEmail: buyerSession?.email || formData.email.toLowerCase().trim(),
           eventName: eventDetails?.title,
           amountPaid: finalPrice,
-          couponUsed: coupon === "APPLIED" ? "PRODIGY500" : null,
+          couponUsed: eventDetails?.appliedCoupon || null,
           receiptUrl: receiptUrl
         }),
       });
@@ -169,7 +167,7 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
         }));
 
         localStorage.removeItem(`timer_end_${eventDetails?.title.replace(/\s+/g, '_')}`);
-        alert(`Success! ${allAttendees.length} registrations are now in the validation queue.`);
+        alert(`Success! ${allAttendees.length} registrations are now locked in the verification pool queue.`);
         onCloseAction();
         window.location.reload();
       } else {
@@ -200,15 +198,15 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                 <h2 className="font-serif text-lg text-[#3B2A26]">{eventDetails.title}</h2>
                 <p className="text-[9px] uppercase tracking-wider text-[#D4AF37] font-bold mt-0.5">Ticket Count: {totalTicketsCount}</p>
               </div>
-              <button onClick={onCloseAction} className="text-[#3B2A26]/40 hover:text-[#3B2A26]"><X size={20} /></button>
+              <button onClick={onCloseAction} className="text-[#3B2A26]/40 hover:text-[#3B2A26] cursor-pointer"><X size={20} /></button>
             </div>
 
-            {/* Scrollable Content */}
+            {/* Content Container */}
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               {step === 1 ? (
                 <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
 
-                  {/* Primary Holder */}
+                  {/* Primary Ticket Holder Fields */}
                   <div className="space-y-4">
                     <p className="text-[10px] uppercase tracking-widest text-[#3B2A26]/60 font-bold border-b border-[#3B2A26]/5 pb-1">Ticket #1 (Primary Holder)</p>
                     <input required type="text" placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full bg-transparent border-b border-[#3B2A26]/20 py-2 outline-none focus:border-[#D4AF37] text-[#3B2A26] text-sm" />
@@ -216,10 +214,10 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                     <input required type="tel" placeholder="WhatsApp Number" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-transparent border-b border-[#3B2A26]/20 py-2 outline-none focus:border-[#D4AF37] text-[#3B2A26] text-sm" />
                   </div>
 
-                  {/* Dynamic Guest Passes */}
+                  {/* Guest Iteration Layout Lists */}
                   {guests.map((guest, index) => (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={index} className="space-y-4 bg-[#3B2A26]/5 p-4 rounded-sm border border-[#3B2A26]/5 relative">
-                      <button type="button" onClick={() => removeGuestField(index)} className="absolute top-3 right-3 text-red-500/60 hover:text-red-600 transition-colors">
+                      <button type="button" onClick={() => removeGuestField(index)} className="absolute top-3 right-3 text-red-500/60 hover:text-red-600 transition-colors cursor-pointer">
                         <Trash2 size={14} />
                       </button>
                       <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-bold">Ticket #{index + 2} (Guest Pass)</p>
@@ -230,16 +228,18 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                     </motion.div>
                   ))}
 
-                  <button type="button" onClick={addGuestField} className="w-full py-3 border border-dashed border-[#3B2A26]/20 text-[#3B2A26]/60 rounded-sm text-[10px] uppercase font-bold tracking-widest flex items-center justify-center gap-2 hover:bg-white hover:text-[#3B2A26] transition-all">
+                  <button type="button" onClick={addGuestField} className="w-full py-3 border border-dashed border-[#3B2A26]/20 text-[#3B2A26]/60 rounded-sm text-[10px] uppercase font-bold tracking-widest flex items-center justify-center gap-2 hover:bg-white hover:text-[#3B2A26] transition-all cursor-pointer">
                     <Plus size={14} /> Add Additional Guest Ticket
                   </button>
 
-                  <div className="flex gap-2 items-end pt-2 border-t border-[#3B2A26]/5">
-                    <input type="text" placeholder="Coupon Code" disabled={coupon === "APPLIED"} onChange={(e) => setCoupon(e.target.value)} className="flex-1 bg-transparent border-b border-[#3B2A26]/20 py-2 outline-none focus:border-[#D4AF37] text-[#3B2A26] text-sm" />
-                    <button type="button" onClick={handleApplyCoupon} className="text-[10px] font-bold text-[#D4AF37] uppercase">{coupon === "APPLIED" ? "Applied" : "Apply"}</button>
-                  </div>
+                  {eventDetails.appliedCoupon && (
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 px-3 py-2 rounded-sm text-green-800 text-[11px] font-mono">
+                      <Tag size={12} className="text-green-600" />
+                      <span>Coupon Connected: <strong>{eventDetails.appliedCoupon}</strong></span>
+                    </div>
+                  )}
 
-                  <button className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black group relative overflow-hidden mt-2 shrink-0">
+                  <button className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black group relative overflow-hidden mt-2 shrink-0 cursor-pointer">
                     <span className="relative z-10">Proceed • ₦{finalPrice.toLocaleString()}</span>
                     <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-0" />
                   </button>
@@ -251,9 +251,9 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                     <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] mb-3 font-bold">Transfer Grand Total</p>
                     <p className="text-3xl font-serif text-[#D4AF37] font-black mb-4">₦{finalPrice.toLocaleString()}</p>
                     <p className="text-[9px] uppercase tracking-widest text-white/40 mb-1">KUDA Account Number</p>
-                      <p className="text-xl font-mono select-all tracking-wider text-white font-bold">2047541429</p>
+                    <p className="text-xl font-mono select-all tracking-wider text-white font-bold">2047541429</p>
                     <p className="text-[11px] text-[#F5E9DA]/60 mt-1">Araoye Busolami</p>
-                    <button type="button" onClick={() => copyToClipboard("2047541429")} className="mx-auto text-[9px] text-[#D4AF37] border border-[#D4AF37]/30 px-5 py-2 mt-4 block uppercase font-bold hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all">
+                    <button type="button" onClick={() => copyToClipboard("2047541429")} className="mx-auto text-[9px] text-[#D4AF37] border border-[#D4AF37]/30 px-5 py-2 mt-4 block uppercase font-bold hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all cursor-pointer">
                       {copied ? "Copied Account" : "Copy Account Details"}
                     </button>
                   </div>
@@ -286,14 +286,14 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                   </div>
 
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setStep(1)} className="px-4 py-4 border border-[#3B2A26]/10 text-[10px] uppercase font-bold tracking-widest text-[#3B2A26] hover:bg-white">Back</button>
+                    <button type="button" onClick={() => setStep(1)} className="px-4 py-4 border border-[#3B2A26]/10 text-[10px] uppercase font-bold tracking-widest text-[#3B2A26] hover:bg-white cursor-pointer">Back</button>
                     <button
                       type="button"
                       onClick={handleFinalSubmit}
                       disabled={!canClickPaid || submitting}
-                      className={`flex-1 py-4 uppercase tracking-[0.4em] text-[10px] font-black rounded-sm transition-all ${canClickPaid && !submitting ? "bg-[#3B2A26] text-[#F5E9DA] shadow-xl" : "bg-[#3B2A26]/5 text-[#3B2A26]/20 cursor-not-allowed"}`}
+                      className={`flex-1 py-4 uppercase tracking-[0.4em] text-[10px] font-black rounded-sm transition-all cursor-pointer ${canClickPaid && !submitting ? "bg-[#3B2A26] text-[#F5E9DA] shadow-xl" : "bg-[#3B2A26]/5 text-[#3B2A26]/20 cursor-not-allowed"}`}
                     >
-                      {submitting ? "Processing Transaction..." : canClickPaid ? "Confirm Transfer" : "Awaiting Secure Window..."}
+                      {submitting ? <Loader2 size={14} className="animate-spin text-white" /> : canClickPaid ? "Confirm Transfer" : "Awaiting Secure Window..."}
                     </button>
                   </div>
                 </div>
