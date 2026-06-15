@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, Clock, Users, Ticket, CheckCircle, Loader2, Tag } from "lucide-react";
 import Image from "next/image";
@@ -7,7 +7,7 @@ import RegistrationModal from "@/components/events/RegistrationModal";
 import TicketStatusFloat from "@/components/events/TicketStatusFloat";
 import Navbar from "@/components/NavBar";
 
-const events = [
+const baseEvents = [
   {
     id: 1,
     title: "The Grand Dinner Night",
@@ -17,28 +17,18 @@ const events = [
     price: "₦4,000",
     numericPrice: 4000,
     description: "An evening of fine dining, red carpet moments, and prophetic words. Dress code: Black Tie / Regal Gold.",
-    image: "/dinner.jpg",
-    available: 50,
-  },
-  // {
-  //   id: 2,
-  //   title: "Casual Get-Together",
-  //   date: "July 25th, 2026",
-  //   time: "2:00 PM",
-  //   location: "Agodi Gardens, Ibadan",
-  //   price: "Free",
-  //   numericPrice: 0,
-  //   description: "Games, music, and deep conversations. A time to unwind and bond before we part ways.",
-  //   image: "/hangout.jpg",
-  //   available: 100,
-  // }
+    image: "/dinner-people.jpg",
+    maxCapacity: 50,
+  }
 ];
 
 export default function BookPage() {
-  const [selectedEvent, setSelectedEvent] = useState<typeof events[0] | null>(null);
+  const [events, setEvents] = useState(baseEvents.map(e => ({ ...e, available: e.maxCapacity })));
+  const [selectedEvent, setSelectedEvent] = useState<typeof baseEvents[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReserved, setIsReserved] = useState<number[]>([]);
   const [userEmail, setUserEmail] = useState<string>("");
+  const [loadingSlots, setLoadingSlots] = useState(true);
 
   // Coupon handling client states
   const [couponCode, setCouponCode] = useState("");
@@ -46,6 +36,28 @@ export default function BookPage() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isValidating, setIsValidating] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
+
+  // Live Slot Tracker Pipeline
+  const syncLiveCapacityPools = useCallback(async () => {
+    try {
+      const res = await fetch("/api/tickets/live-capacity");
+      if (res.ok) {
+        const counts: Record<string, number> = await res.json();
+
+        setEvents(baseEvents.map(event => {
+          const claimedCount = counts[event.title] || 0;
+          return {
+            ...event,
+            available: Math.max(0, event.maxCapacity - claimedCount)
+          };
+        }));
+      }
+    } catch (e) {
+      console.error("Capacity sync failure:", e);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("prodigy_user_session");
@@ -57,15 +69,22 @@ export default function BookPage() {
         console.error("Failed to read context session rows:", e);
       }
     }
-  }, []);
+    syncLiveCapacityPools();
+  }, [syncLiveCapacityPools]);
 
-  const handleOpenBooking = (event: typeof events[0]) => {
+  const handleOpenBooking = (event: typeof baseEvents[0]) => {
     const activeUser = localStorage.getItem("prodigy_user_session");
 
     if (!activeUser) {
       alert("Authentication Required:\nPlease connect your secure Profile Pass before purchasing an entry ticket.");
       const triggerEvent = new CustomEvent("trigger-login");
       window.dispatchEvent(triggerEvent);
+      return;
+    }
+
+    const currentEventState = events.find(e => e.id === event.id);
+    if (currentEventState && currentEventState.available <= 0) {
+      alert("Sold Out: This event has reached maximum capacity.");
       return;
     }
 
@@ -126,6 +145,14 @@ export default function BookPage() {
     setCouponError(null);
   };
 
+  if (loadingSlots) {
+    return (
+      <div className="min-h-screen bg-[#F5E9DA] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#3B2A26]" size={32} />
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#F5E9DA] pt-32 pb-20 px-6">
       <div className="max-w-6xl mx-auto">
@@ -144,6 +171,7 @@ export default function BookPage() {
           {events.map((event, index) => {
             const hasDiscount = event.numericPrice > 0 && discountAmount > 0;
             const liveComputedPrice = Math.max(0, event.numericPrice - discountAmount);
+            const isSoldOut = event.available <= 0;
 
             return (
               <motion.div
@@ -158,7 +186,9 @@ export default function BookPage() {
                     <Image src={event.image} alt={event.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
                   )}
                   <div className="absolute top-4 left-4 px-4 py-2 bg-[#3B2A26] text-[#D4AF37] text-xs font-bold uppercase tracking-widest flex flex-col items-start gap-0.5">
-                    {hasDiscount ? (
+                    {isSoldOut ? (
+                      <span className="text-red-400">Sold Out</span>
+                    ) : hasDiscount ? (
                       <>
                         <span className="line-through text-white/50 text-[10px]">{event.price}</span>
                         <span>₦{liveComputedPrice.toLocaleString()}</span>
@@ -178,11 +208,13 @@ export default function BookPage() {
                       <div className="flex items-center gap-3 text-[#3B2A26]/80 text-[10px] uppercase tracking-widest"><Calendar size={14} className="text-[#D4AF37]" /> {event.date}</div>
                       <div className="flex items-center gap-3 text-[#3B2A26]/80 text-[10px] uppercase tracking-widest"><Clock size={14} className="text-[#D4AF37]" /> {event.time}</div>
                       <div className="flex items-center gap-3 text-[#3B2A26]/80 text-[10px] uppercase tracking-widest"><MapPin size={14} className="text-[#D4AF37]" /> {event.location}</div>
-                      <div className="flex items-center gap-3 text-[#3B2A26]/80 text-[10px] uppercase tracking-widest font-bold"><Users size={14} className="text-[#D4AF37]" /> {event.available} Slots Left</div>
+                      <div className={`flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold ${isSoldOut ? 'text-red-600' : 'text-[#3B2A26]/80'}`}>
+                        <Users size={14} className="text-[#D4AF37]" /> {event.available} Slots Left
+                      </div>
                     </div>
                   </div>
 
-                  {event.numericPrice > 0 && (
+                  {event.numericPrice > 0 && !isSoldOut && (
                     <div className="max-w-md border-t border-[#3B2A26]/10 pt-6 mb-2">
                       {appliedCoupon ? (
                         <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-sm px-4 py-3 text-green-800">
@@ -226,10 +258,12 @@ export default function BookPage() {
 
                   <button
                     onClick={() => handleOpenBooking(event)}
-                    disabled={isReserved.includes(event.id)}
-                    className="w-full sm:w-fit px-12 py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center justify-center gap-3 cursor-pointer"
+                    disabled={isReserved.includes(event.id) || isSoldOut}
+                    className="w-full sm:w-fit px-12 py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center justify-center gap-3 cursor-pointer disabled:bg-stone-400 disabled:cursor-not-allowed"
                   >
-                    {isReserved.includes(event.id) ? (
+                    {isSoldOut ? (
+                      "Event Full"
+                    ) : isReserved.includes(event.id) ? (
                       <> <CheckCircle size={14} /> Reservation Sent </>
                     ) : (
                       <> <Ticket size={14} /> {event.numericPrice === 0 ? "Reserve Spot" : "Book My Spot"} </>
@@ -244,11 +278,15 @@ export default function BookPage() {
         <RegistrationModal
           key={selectedEvent?.id || 'none'}
           isOpen={isModalOpen}
-          onCloseAction={() => setIsModalOpen(false)}
+          onCloseAction={() => {
+            setIsModalOpen(false);
+            syncLiveCapacityPools();
+          }}
           eventDetails={selectedEvent ? {
             title: selectedEvent.title,
             price: discountAmount > 0 ? `₦${Math.max(0, selectedEvent.numericPrice - discountAmount).toLocaleString()}` : selectedEvent.price,
-            numericPrice: Math.max(0, selectedEvent.numericPrice - discountAmount)
+            numericPrice: Math.max(0, selectedEvent.numericPrice - discountAmount),
+            appliedCoupon: appliedCoupon
           } : null}
         />
         <TicketStatusFloat />
