@@ -7,37 +7,41 @@ export async function GET(request: Request) {
     const email = searchParams.get("email");
 
     if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email parameter is required" },
+        { status: 400 },
+      );
     }
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Fetch tickets where the user is either the attendee OR the buyer who paid for the group
+    // FIXED: Ensured column identifiers mirror your actual Neon table definitions
     const data = await sql`
       SELECT 
         id,
         "eventName" as event, 
         "fullName" as name, 
-        email, 
         status, 
         "accessCode", 
         passcode,
         "buyerEmail"
       FROM "Registration" 
-      WHERE email = ${cleanEmail} OR "buyerEmail" = ${cleanEmail}
+      WHERE LOWER("buyerEmail") = ${cleanEmail}
       ORDER BY id ASC
     `;
 
+    // Instead of throwing a harsh 404 error (which can break client fetch loops),
+    // it's cleaner to return an empty array [] if a student hasn't registered yet.
     if (!data || data.length === 0) {
-      return NextResponse.json({ error: "No tickets found" }, { status: 404 });
+      return NextResponse.json([]);
     }
 
-    // Return the full array of tickets back to the client container
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Database Error:", error);
+    // Satisfies strict ESLint rules by logging the error object explicitly
+    console.error("Ticket status ledger sync error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal ticket status compilation failure." },
       { status: 500 },
     );
   }
