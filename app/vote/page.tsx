@@ -38,7 +38,9 @@ const graduates = [
   { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfiment.jpeg" },
   { name: "Babalola Josephine Adesola", email: "babalolajosephineadesola@gmail.com", image: "/babalola.jpg" },
   { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "/nifemi.jpg" },
-  { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" }
+  { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" },
+  {name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfilment.jpeg"},
+  { name: "Rapheal Sinaayomi Victor", email: "", image: "/victor.jpg" }
 ];
 
 const votingCategories = [
@@ -47,7 +49,7 @@ const votingCategories = [
   { id: "best_dressed_female", label: "Best Dressed (F)", icon: <Award size={14} /> },
   { id: "most_reserved", label: "Most Reserved", icon: <Heart size={14} /> },
   { id: "most_industrious", label: "Most Industrious", icon: <Star size={14} /> },
-  { id: "outstanding_student", label: "Outstanding Student", icon: <User size={14} /> }
+  // { id: "outstanding_student", label: "Outstanding Student", icon: <User size={14} /> }
 ];
 
 const findImageByName = (name: string) => {

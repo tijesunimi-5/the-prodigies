@@ -39,8 +39,8 @@ const graduates = [
   { name: "Babalola Josephine Adesola", email: "babalolajosephineadesola@gmail.com", image: "/babalola.jpg" },
   { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "/nifemi.jpg" },
   { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" },
-  { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/"},
-  { name: "Rapheal Sinaayomi Victor", email: "", image: "/"}
+  { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfilment.jpeg"},
+  { name: "Rapheal Sinaayomi Victor", email: "", image: "/victor.jpg"}
 ];
 
 const categories = [
@@ -49,7 +49,7 @@ const categories = [
   { id: "best_dressed_female", title: "Best Dressed (Female)", desc: "Stunning elegance, high-end aesthetics, and graceful presence.", icon: <Award size={16} /> },
   { id: "most_reserved", title: "Most Reserved", desc: "Calm, deeply observant, moving with quiet excellence and poise.", icon: <Heart size={16} /> },
   { id: "most_industrious", title: "Most Industrious / Entrepreneur", desc: "The ultimate hustler, building businesses and showcasing drive.", icon: <Star size={16} /> },
-  { id: "outstanding_student", title: "Outstanding Student", desc: "Academic excellence balanced with phenomenal character.", icon: <User size={16} /> }
+  // { id: "outstanding_student", title: "Outstanding Student", desc: "Academic excellence balanced with phenomenal character.", icon: <User size={16} /> }
 ];
 
 type NominationRow = {

@@ -234,10 +234,10 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                     <Plus size={14} /> Add Additional Guest Ticket
                   </button>
 
-                  <div className="flex gap-2 items-end pt-2 border-t border-[#3B2A26]/5">
+                  {/* <div className="flex gap-2 items-end pt-2 border-t border-[#3B2A26]/5">
                     <input type="text" placeholder="Coupon Code" disabled={coupon === "APPLIED"} onChange={(e) => setCoupon(e.target.value)} className="flex-1 bg-transparent border-b border-[#3B2A26]/20 py-2 outline-none focus:border-[#D4AF37] text-[#3B2A26] text-sm" />
                     <button type="button" onClick={handleApplyCoupon} className="text-[10px] font-bold text-[#D4AF37] uppercase">{coupon === "APPLIED" ? "Applied" : "Apply"}</button>
-                  </div>
+                  </div> */}
 
                   <button className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black group relative overflow-hidden mt-2 shrink-0">
                     <span className="relative z-10">Proceed • ₦{finalPrice.toLocaleString()}</span>

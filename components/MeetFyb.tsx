@@ -533,7 +533,7 @@ const graduates = [
   }, 
   {
     name: "Akinleye Fulfilment Ooreofeoluwa",
-    image: "",
+    image: "/fulfilment.jpeg",
     dob: "28th of July",
     unit: "Sanctuary Keepers, Drama Unit",
     department: "Physiology",
@@ -549,7 +549,7 @@ const graduates = [
   },
   {
     name: "Rapheal Sinaayomi Victor",
-    image: "",
+    image: "/victor.jpg",
     dob: "20th of April",
     unit: "Choir, Media",
     department: "Cyber Security",
