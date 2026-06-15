@@ -39,7 +39,9 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
   // --- PRICING ALGORITHM CONFIGURATION ---
   const basePrice = eventDetails?.numericPrice ?? 0;
   const totalTicketsCount = 1 + guests.length;
-  const finalPrice = basePrice * totalTicketsCount;
+
+  // FIX: Coupon safely evaluates as a flat single deduction off the grand total
+  const finalPrice = Math.max(0, (basePrice * totalTicketsCount) - (eventDetails?.appliedCoupon ? 500 : 0));
 
   useEffect(() => {
     const savedSession = localStorage.getItem("prodigy_user_session");
@@ -284,7 +286,7 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
                       disabled={!canClickPaid || submitting}
                       className={`flex-1 py-4 uppercase tracking-[0.4em] text-[10px] font-black rounded-sm transition-all cursor-pointer ${canClickPaid && !submitting ? "bg-[#3B2A26] text-[#F5E9DA] shadow-xl" : "bg-[#3B2A26]/5 text-[#3B2A26]/20 cursor-not-allowed"}`}
                     >
-                      {submitting ? "Processing Transaction..." : canClickPaid ? "Confirm Transfer" : "Awaiting Secure Window..."}
+                      {submitting ? <Loader2 size={14} className="animate-spin text-white" /> : canClickPaid ? "Confirm Transfer" : "Awaiting Secure Window..."}
                     </button>
                   </div>
                 </div>
