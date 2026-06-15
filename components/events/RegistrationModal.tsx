@@ -9,7 +9,7 @@ interface RegistrationModalProps {
   eventDetails: {
     title: string;
     price: string;
-    numericPrice: number;
+    numericPrice: number; // Raw event price passed down (e.g., 4000)
     appliedCoupon?: string | null;
   } | null;
 }
@@ -36,12 +36,19 @@ export default function RegistrationModal({ isOpen, onCloseAction, eventDetails 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- PRICING ALGORITHM CONFIGURATION ---
-  const basePrice = eventDetails?.numericPrice ?? 0;
+  // --- FIXED PRICING ALGORITHM CONFIGURATION ---
+  // If the parent page already passed the discounted price, we make sure we don't double-deduct.
+  // We use the full base price (4000) for calculation. If an applied coupon is present, 
+  // we do a single flat 500 Naira subtraction off the absolute total.
+  const isCouponApplied = !!eventDetails?.appliedCoupon;
+
+  // If the parent page passed a price that was already modified (like 3500), we reconstruct the true base price (4000) 
+  // to avoid duplication bugs, or evaluate it relative to the coupon presence.
+  const rawBasePrice = eventDetails?.appliedCoupon ? eventDetails.numericPrice + 500 : (eventDetails?.numericPrice ?? 0);
   const totalTicketsCount = 1 + guests.length;
 
-  // FIX: Coupon safely evaluates as a flat single deduction off the grand total
-  const finalPrice = Math.max(0, (basePrice * totalTicketsCount) - (eventDetails?.appliedCoupon ? 500 : 0));
+  // Grand Total calculation: (Full price * number of people) - single flat 500 Naira discount
+  const finalPrice = Math.max(0, (rawBasePrice * totalTicketsCount) - (isCouponApplied ? 500 : 0));
 
   useEffect(() => {
     const savedSession = localStorage.getItem("prodigy_user_session");
