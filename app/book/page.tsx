@@ -13,7 +13,7 @@ const baseEvents = [
     title: "The Grand Dinner Night",
     date: "July 24th, 2026",
     time: "6:00 PM",
-    location: "Living Spring Hall, Ibadan",
+    location: "Firebrand Model Parish Opp, Excel Hostel, Under G, Ogbomosho.",
     price: "₦4,000",
     numericPrice: 4000,
     description: "An evening of fine dining, red carpet moments, and prophetic words. Dress code: Black Tie / Regal Gold.",
