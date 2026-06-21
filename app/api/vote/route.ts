@@ -6,7 +6,7 @@ export async function GET() {
     // Public page only gets nominees officially verified and approved by the admin committee
     const approvedNominees = await sql`
       SELECT category, "nomineeName" as name
-      FROM "Nomination"
+      FROM "Nominatin"
       WHERE "isApproved" = true
       GROUP BY category, "nomineeName"
       ORDER BY "nomineeName" ASC
