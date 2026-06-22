@@ -86,7 +86,7 @@ export default function StrictLoginPage() {
             className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
           >
             {submitting ? <Loader2 size={14} className="animate-spin" /> : <><ArrowRight size={14} /> Unlock My Ballot Box</>}
-          </button>
+          </button> -
         </form>
       </div>
     </main>
