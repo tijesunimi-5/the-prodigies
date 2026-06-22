@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // STRICT CHECK: Scan if this canonical email is already a verified registered voter
+    // Scan if this email is a verified, pre-registered voter
     const userRow = await sql`
       SELECT "fullName" FROM "VoterRegistry" WHERE email = ${cleanEmail}
     `;
@@ -38,13 +38,12 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Access Denied: This email is not registered in the 2-hour roster.",
+            "Access Denied: This email was not found in the registration roster.",
         },
         { status: 403 },
       );
     }
 
-    // Pass back their matching registration data
     return NextResponse.json({
       success: true,
       name: userRow[0].fullName,
