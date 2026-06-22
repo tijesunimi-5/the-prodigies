@@ -26,17 +26,17 @@ export default function StrictLoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // Re-seed the user session variables natively
+        // Restore local storage session parameters to unlock the main page checks
         localStorage.setItem("prodigy_user_session", JSON.stringify({
           email: data.email,
           name: data.name
         }));
 
-        setSuccessMessage(`Welcome back, ${data.name}! Re-authenticating credentials...`);
+        setSuccessMessage(`Authenticated successfully! Welcome back, ${data.name}.`);
 
         setTimeout(() => {
           router.push("/vote");
-        }, 1500);
+        }, 1200);
       } else {
         setErrorMessage(data.error || "Authentication failed.");
       }
@@ -53,20 +53,20 @@ export default function StrictLoginPage() {
       <div className="max-w-md mx-auto bg-white/40 backdrop-blur-md border border-[#3B2A26]/5 rounded-sm p-8 shadow-xl">
         <header className="text-center mb-8">
           <KeyRound size={36} className="mx-auto text-[#D4AF37] mb-2" />
-          <span className="text-[10px] uppercase font-black tracking-[0.3em] text-[#D4AF37]">Roster Verification</span>
+          <span className="text-[10px] uppercase font-black tracking-[0.3em] text-[#D4AF37]">Identity Check</span>
           <h1 className="text-3xl font-serif mt-1 font-bold">Voter Login Station</h1>
-          <p className="text-xs text-[#3B2A26]/60 mt-2">Recover your ballot access using your registered primary Gmail account.</p>
+          <p className="text-xs text-[#3B2A26]/60 mt-2">Type your exact registered Gmail address to recover your live voting card.</p>
         </header>
 
         <form onSubmit={handleLogin} className="space-y-6">
-          <div className="relative border-b border-[#3B2A26]/20 focus-within:border-[#D4AF37] transition-colors py-2 flex items-center gap-3">
+          <div className="relative border-b border-[#3B2A26]/20 focus-within:border-[#D4AF37] transition-colors py-2 flex items-center justify-center">
             <input
               required
               type="email"
-              placeholder="Enter Your Registered Gmail"
+              placeholder="Your Registered Gmail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent outline-none text-sm font-sans text-center font-mono"
+              className="w-full bg-transparent outline-none text-sm text-center font-mono"
             />
           </div>
 
@@ -86,12 +86,8 @@ export default function StrictLoginPage() {
             className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
           >
             {submitting ? <Loader2 size={14} className="animate-spin" /> : <><ArrowRight size={14} /> Unlock My Ballot Box</>}
-          </button>
+          </button> -
         </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-[10px] uppercase tracking-wider opacity-50">Strict Roster Cross-Match Active</p>
-        </div>
       </div>
     </main>
   );
