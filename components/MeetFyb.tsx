@@ -561,7 +561,7 @@ const graduates = [
     oneWord: "Creative",
     origin: "Oyo",
     whatsapp: "09018627779",
-    email: ""
+    email: "raphealv115@gmail.com"
   },
   // {
   //   name: "",

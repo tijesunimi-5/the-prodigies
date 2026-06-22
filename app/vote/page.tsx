@@ -40,8 +40,8 @@ const graduates = [
   { name: "Babalola Josephine Adesola", email: "babalolajosephineadesola@gmail.com", image: "/babalola.jpg" },
   { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "/nifemi.jpg" },
   { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" },
-  { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfilment.jpeg" },
-  { name: "Rapheal Sinaayomi Victor", email: "", image: "/victor.jpg" }
+  {name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfilment.jpeg"},
+  { name: "Rapheal Sinaayomi Victor", email: "raphealv115@gmail.com", image: "/victor.jpg" }
 ];
 
 const votingCategories = [
