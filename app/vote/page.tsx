@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Star, Heart, Award, Sparkles, User, CheckCircle2, TrendingUp, Crown, Loader2, ShieldCheck } from "lucide-react";
+import { Trophy, Star, Heart, Award, Sparkles, User, CheckCircle2, TrendingUp, Crown, Loader2, ShieldCheck, UserPlus } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // FIXED: Corrected App Router hook import formatting
 import TicketStatusFloat from "@/components/events/TicketStatusFloat";
 import Navbar from "@/components/NavBar";
 
@@ -39,7 +40,7 @@ const graduates = [
   { name: "Babalola Josephine Adesola", email: "babalolajosephineadesola@gmail.com", image: "/babalola.jpg" },
   { name: "OLUWANIFEMI O. ARIBISALA", email: "aribisalaoluwanifemi95@gmail.com", image: "/nifemi.jpg" },
   { name: "Ibirogba Matthew", email: "Mathew.seun14@gmail.com", image: "/matthew.jpg" },
-  {name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfilment.jpeg"},
+  { name: "Akinleye Fulfilment Ooreofeoluwa", email: "akinleyefulfilment@gmail.com", image: "/fulfilment.jpeg" },
   { name: "Rapheal Sinaayomi Victor", email: "", image: "/victor.jpg" }
 ];
 
@@ -48,8 +49,7 @@ const votingCategories = [
   { id: "best_dressed_male", label: "Best Dressed (M)", icon: <Trophy size={14} /> },
   { id: "best_dressed_female", label: "Best Dressed (F)", icon: <Award size={14} /> },
   { id: "most_reserved", label: "Most Reserved", icon: <Heart size={14} /> },
-  { id: "most_industrious", label: "Most Industrious", icon: <Star size={14} /> },
-  // { id: "outstanding_student", label: "Outstanding Student", icon: <User size={14} /> }
+  { id: "most_industrious", label: "Most Industrious", icon: <Star size={14} /> }
 ];
 
 const findImageByName = (name: string) => {
@@ -61,6 +61,7 @@ const findImageByName = (name: string) => {
 };
 
 export default function TransformedVotePage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("most_active");
   const [userSession, setUserSession] = useState<{ email: string; name: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,7 @@ export default function TransformedVotePage() {
 
   const pullCoreVotingMatrix = useCallback(async () => {
     try {
-      const res = await fetch("/api/vote");
+      const res = await fetch("/api/admin/voting-clock");
       if (res.ok) {
         const data = await res.json();
         setDbNominees(data.nominees || []);
@@ -102,21 +103,23 @@ export default function TransformedVotePage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/vote", {
+      const res = await fetch("/api/secure-vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          buyerEmail: userSession.email,
+          voterEmail: userSession.email.toLowerCase().trim(),
           ballots: ballot
         })
       });
+
+      const data = await res.json();
 
       if (res.ok) {
         alert("Success! Your ballot has been cast and locked securely.");
         setHasVotedAny(true);
         await pullCoreVotingMatrix();
       } else {
-        alert("Transaction Error: Split records or double entries rejected.");
+        alert(`Voting Rejected: ${data.error || "Session mismatch or unauthorized user."}`);
       }
     } catch (e) {
       alert("Network exception posting ballot rows.");
@@ -142,10 +145,16 @@ export default function TransformedVotePage() {
       <main className="min-h-screen bg-[#F5E9DA] pt-36 flex flex-col items-center px-6">
         <Navbar />
         <div className="max-w-md text-center space-y-6 bg-white/40 p-8 border border-[#3B2A26]/5 shadow-xl rounded-sm backdrop-blur-md">
-          <Trophy size={48} className="text-[#D4AF37] mx-auto animate-bounce" />
+          <Trophy size={48} className="text-[#D4AF37] mx-auto animate-pulse" />
           <h2 className="font-serif text-3xl text-[#3B2A26]">Secure Ballot Station</h2>
-          <p className="text-sm text-[#3B2A26]/70 leading-relaxed">To ensure encrypted, transparent vote counts and prevent duplicate ballots, you must connect your active Profile Pass.</p>
-          <button onClick={() => window.dispatchEvent(new CustomEvent("trigger-login"))} className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase font-black tracking-widest hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer">Sync Profile Pass</button>
+          <p className="text-sm text-[#3B2A26]/70 leading-relaxed">To prevent double-voting and block fake accounts, you must complete your 2-Hour Device Verification Roster Pass before voting.</p>
+
+          <button
+            onClick={() => router.push("/vote-register")}
+            className="w-full py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase font-black tracking-widest hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
+            <UserPlus size={12} /> Go to Registration Page
+          </button>
         </div>
       </main>
     );
@@ -255,6 +264,14 @@ export default function TransformedVotePage() {
                   filteredLeaderboard.map((person, index) => {
                     const avatarImg = findImageByName(person.name);
 
+                    // Dynamic ranking labels with no numbers shown
+                    const getRankLabel = (idx: number) => {
+                      if (idx === 0) return "1st Place";
+                      if (idx === 1) return "2nd Place";
+                      if (idx === 2) return "3rd Place";
+                      return `${idx + 1}th Place`;
+                    };
+
                     return (
                       <motion.div key={index} layout className="flex items-center justify-between group">
                         <div className="flex items-center gap-4">
@@ -273,12 +290,13 @@ export default function TransformedVotePage() {
                           </div>
                           <div>
                             <p className="text-[#F5E9DA] text-xs font-serif tracking-wide w-40 truncate">{person.name}</p>
-                            <div className="flex items-center gap-1 text-[8px] text-[#D4AF37] uppercase tracking-widest">
-                              <TrendingUp size={8} /> {person.votes} Votes
+                            {/* FIXED: Hiding exact counts, showing dynamic ordinal ranking badges instead */}
+                            <div className="flex items-center gap-1 text-[8px] text-[#D4AF37] uppercase tracking-widest font-black">
+                              <TrendingUp size={8} /> {getRankLabel(index)}
                             </div>
                           </div>
                         </div>
-                        {index === 0 && <Crown size={16} className="text-[#D4AF37]" />}
+                        {index === 0 && <Crown size={16} className="text-[#D4AF37] animate-pulse" />}
                       </motion.div>
                     );
                   })
