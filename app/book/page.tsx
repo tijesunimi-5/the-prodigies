@@ -14,11 +14,11 @@ const baseEvents = [
     date: "July 20th, 2026",
     time: "4:00 PM",
     location: "Firebrand Model Parish Opp, Excel Hostel, Under G, Ogbomosho.",
-    price: "₦4,000",
-    numericPrice: 4000,
+    price: "₦3,000",
+    numericPrice: 3000,
     description: "An evening of fine dining, red carpet moments, and prophetic words. Dress code: Black Tie / Regal Gold.",
     image: "/dinner-people.jpg",
-    maxCapacity: 50,
+    maxCapacity: 70,
   }
 ];
 
