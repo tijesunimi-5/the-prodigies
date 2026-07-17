@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Check, X, Eye, Loader2, Ticket, Plus, Sparkles, Search, Clipboard, Users } from "lucide-react";
+import { Check, X, Eye, Loader2, Ticket, Plus, Sparkles, Search, Clipboard, Users, UserPlus, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,6 +14,8 @@ interface TicketItem {
   receiptUrl: string;
   accessCode?: string;
   passcode?: string;
+  email?: string;
+  buyerEmail?: string;
 }
 
 interface CouponRow {
@@ -31,6 +33,12 @@ export default function TicketsAdmin() {
   const [loading, setLoading] = useState(true);
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Fast Issue Form States
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [isIssuing, setIsIssuing] = useState(false);
+  const [issuedResult, setIssuedResult] = useState<{ code: string; passCode: string } | null>(null);
 
   // Coupon Generator States
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
@@ -77,6 +85,37 @@ export default function TicketsAdmin() {
     }
   };
 
+  const handleIssueTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isIssuing) return;
+    setIsIssuing(true);
+    setIssuedResult(null);
+
+    try {
+      const res = await fetch("/api/ticket-status/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: guestName, email: guestEmail }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setIssuedResult(data.ticket);
+        setGuestName("");
+        setGuestEmail("");
+        await loadDataPools(); // Reload list so newly issued ticket displays below
+      } else {
+        alert(data.error || "Failed to issue ticket.");
+      }
+    } catch (error) {
+      console.error("Manual issue exception:", error);
+      alert("Network error issuing pass.");
+    } finally {
+      setIsIssuing(false);
+    }
+  };
+
   const handleCreateCoupons = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isGenerating) return;
@@ -86,10 +125,9 @@ export default function TicketsAdmin() {
       const res = await fetch("/api/admin/coupons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: couponQuantity })
+        body: JSON.stringify({ quantity: couponQuantity }),
       });
       if (res.ok) {
-        // Force refresh to pull newly generated rows immediately
         const couponRes = await fetch("/api/admin/coupons");
         if (couponRes.ok) setCoupons(await couponRes.json());
         setCouponQuantity("5");
@@ -108,15 +146,18 @@ export default function TicketsAdmin() {
     alert(`Copied code: ${text}`);
   };
 
-  if (loading) return (
-    <div className="flex justify-center p-20">
-      <Loader2 className="animate-spin text-[#D4AF37]" size={32} />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex justify-center p-20">
+        <Loader2 className="animate-spin text-[#D4AF37]" size={32} />
+      </div>
+    );
+  }
 
-  const filteredCoupons = coupons.filter(c =>
-    c.code.toLowerCase().includes(couponSearch.toLowerCase()) ||
-    (c.usedBy && c.usedBy.toLowerCase().includes(couponSearch.toLowerCase()))
+  const filteredCoupons = coupons.filter(
+    (c) =>
+      c.code.toLowerCase().includes(couponSearch.toLowerCase()) ||
+      (c.usedBy && c.usedBy.toLowerCase().includes(couponSearch.toLowerCase()))
   );
 
   return (
@@ -148,89 +189,155 @@ export default function TicketsAdmin() {
 
       {/* VIEW CONDITIONAL RENDERING BASELINE */}
       {viewMode === "ledger" ? (
-        <div className="bg-white rounded-sm border border-[#3B2A26]/5 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-full lg:min-w-[900px]">
-              <thead className="bg-[#3B2A26] text-[#D4AF37] text-[10px] uppercase tracking-[0.2em]">
-                <tr>
-                  <th className="p-5 pl-8">Guest</th>
-                  <th className="p-5">Security Codes (2FA)</th>
-                  <th className="p-5">Amount</th>
-                  <th className="p-5">Receipt</th>
-                  <th className="p-5">Status</th>
-                  <th className="p-5 text-right pr-8">Management</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#3B2A26]/5">
-                {tickets.length === 0 ? (
+        <div className="space-y-8">
+          {/* --- INTEGRATED FAST ISSUE TICKET MODULE --- */}
+          <div className="bg-[#3B2A26] text-[#F5E9DA] p-6 rounded-sm border border-[#D4AF37]/30 shadow-md">
+            <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-3">
+              <UserPlus size={18} className="text-[#D4AF37]" />
+              <h2 className="text-lg font-serif text-[#D4AF37]">Instant Ticket Grant & Pass Generator</h2>
+            </div>
+
+            <form onSubmit={handleIssueTicket} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+              <div className="md:col-span-5 space-y-1">
+                <label className="text-[10px] uppercase tracking-widest text-white/50 font-bold block">Attendee Full Name</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="e.g. Feyisara "
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full bg-black/30 border border-white/10 p-3 rounded-sm text-xs font-mono outline-none focus:border-[#D4AF37] text-white"
+                />
+              </div>
+
+              <div className="md:col-span-5 space-y-1">
+                <label className="text-[10px] uppercase tracking-widest text-white/50 font-bold block">Attendee Gmail</label>
+                <input
+                  required
+                  type="email"
+                  placeholder="e.g. feyi@gmail.com"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  className="w-full bg-black/30 border border-white/10 p-3 rounded-sm text-xs font-mono outline-none focus:border-[#D4AF37] text-white"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  disabled={isIssuing}
+                  className="w-full py-3 bg-[#D4AF37] text-[#3B2A26] font-black uppercase text-[10px] tracking-widest rounded-sm hover:bg-amber-400 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                >
+                  {isIssuing ? <Loader2 size={14} className="animate-spin" /> : "Issue Pass"}
+                </button>
+              </div>
+            </form>
+
+            {issuedResult && (
+              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-3 bg-green-900/40 border border-green-500/40 rounded-sm text-xs flex flex-wrap items-center justify-between gap-4">
+                <p className="text-green-400 font-bold flex items-center gap-1">
+                  <CheckCircle2 size={14} /> Ticket Issued & Approved Live!
+                </p>
+                <div className="flex gap-4 font-mono">
+                  <span>Code: <strong className="text-[#D4AF37]">{issuedResult.code}</strong></span>
+                  <span>PIN: <strong className="text-amber-300">{issuedResult.passCode}</strong></span>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* --- MAIN REGISTRATION & TICKET LEDGER TABLE --- */}
+          <div className="bg-white rounded-sm border border-[#3B2A26]/5 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-full lg:min-w-[900px]">
+                <thead className="bg-[#3B2A26] text-[#D4AF37] text-[10px] uppercase tracking-[0.2em]">
                   <tr>
-                    <td colSpan={6} className="p-10 text-center font-bold tracking-wider text-[#3B2A26]/40 uppercase text-xs">
-                      No ticket submissions recorded yet.
-                    </td>
+                    <th className="p-5 pl-8">Guest</th>
+                    <th className="p-5">Security Codes (2FA)</th>
+                    <th className="p-5">Amount</th>
+                    <th className="p-5">Receipt</th>
+                    <th className="p-5">Status</th>
+                    <th className="p-5 text-right pr-8">Management</th>
                   </tr>
-                ) : (
-                  tickets.map((ticket) => (
-                    <tr key={ticket.id} className="text-sm text-[#3B2A26] hover:bg-[#F5E9DA]/30 transition-colors">
-                      <td className="p-5 pl-8">
-                        <p className="font-bold">{ticket.fullName}</p>
-                        <p className="text-[10px] opacity-50">{ticket.phone}</p>
-                      </td>
-                      <td className="p-5">
-                        {ticket.status === 'verified' ? (
-                          <div className="flex flex-col gap-1">
-                            <code className="text-[9px] font-mono bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 w-fit">
-                              QR: {ticket.accessCode}
-                            </code>
-                            <span className="text-[10px] font-bold text-[#3B2A26]/60">
-                              PIN: {ticket.passcode}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-gray-400 italic">Awaiting Approval</span>
-                        )}
-                      </td>
-                      <td className="p-5 font-bold">₦{ticket.amountPaid.toLocaleString()}</td>
-                      <td className="p-5">
-                        <button
-                          onClick={() => setPreviewImage(ticket.receiptUrl)}
-                          className="flex items-center gap-2 text-[#D4AF37] font-bold text-[10px] uppercase hover:underline cursor-pointer"
-                        >
-                          <Eye size={14} /> View
-                        </button>
-                      </td>
-                      <td className="p-5">
-                        <span className={`px-3 py-1 text-[9px] font-bold uppercase rounded-full ${ticket.status === 'verified' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                          }`}>
-                          {ticket.status}
-                        </span>
-                      </td>
-                      <td className="p-5 text-right pr-8">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handleAction(ticket.id, 'declined')}
-                            className="p-2 text-red-400 hover:bg-red-50 rounded-sm transition-all cursor-pointer"
-                          >
-                            <X size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleAction(ticket.id, 'verified')}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-sm transition-all cursor-pointer"
-                          >
-                            <Check size={18} />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-[#3B2A26]/5">
+                  {tickets.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-10 text-center font-bold tracking-wider text-[#3B2A26]/40 uppercase text-xs">
+                        No ticket submissions recorded yet.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    tickets.map((ticket) => (
+                      <tr key={ticket.id} className="text-sm text-[#3B2A26] hover:bg-[#F5E9DA]/30 transition-colors">
+                        <td className="p-5 pl-8">
+                          <p className="font-bold">{ticket.fullName}</p>
+                          <p className="text-[10px] opacity-50">{ticket.email || ticket.buyerEmail || ticket.phone || "No Email Provided"}</p>
+                        </td>
+                        <td className="p-5">
+                          {ticket.status === "verified" ? (
+                            <div className="flex flex-col gap-1">
+                              <code className="text-[9px] font-mono bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 w-fit">
+                                QR: {ticket.accessCode}
+                              </code>
+                              <span className="text-[10px] font-bold text-[#3B2A26]/60">
+                                PIN: {ticket.passcode}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic">Awaiting Approval</span>
+                          )}
+                        </td>
+                        <td className="p-5 font-bold">₦{ticket.amountPaid.toLocaleString()}</td>
+                        <td className="p-5">
+                          {ticket.receiptUrl ? (
+                            <button
+                              onClick={() => setPreviewImage(ticket.receiptUrl)}
+                              className="flex items-center gap-2 text-[#D4AF37] font-bold text-[10px] uppercase hover:underline cursor-pointer"
+                            >
+                              <Eye size={14} /> View
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic">Admin Issue</span>
+                          )}
+                        </td>
+                        <td className="p-5">
+                          <span
+                            className={`px-3 py-1 text-[9px] font-bold uppercase rounded-full ${ticket.status === "verified" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                              }`}
+                          >
+                            {ticket.status}
+                          </span>
+                        </td>
+                        <td className="p-5 text-right pr-8">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handleAction(ticket.id, "declined")}
+                              className="p-2 text-red-400 hover:bg-red-50 rounded-sm transition-all cursor-pointer"
+                              title="Decline Pass"
+                            >
+                              <X size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleAction(ticket.id, "verified")}
+                              className="p-2 text-green-600 hover:bg-green-50 rounded-sm transition-all cursor-pointer"
+                              title="Approve Pass"
+                            >
+                              <Check size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (
         /* --- INTEGRATED COMPREHENSIVE COUPON FACTORY WORKSPACE PANEL --- */
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start w-full">
-
           {/* MINT ENGINE CARD MODULE */}
           <div className="xl:col-span-4 bg-white border border-[#3B2A26]/5 p-6 rounded-sm shadow-sm space-y-4">
             <h3 className="font-serif text-lg text-[#3B2A26] font-bold border-b pb-2">Mint Discount Vouchers</h3>
@@ -307,8 +414,10 @@ export default function TicketsAdmin() {
                           </button>
                         </td>
                         <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[8px] uppercase font-black tracking-wider ${c.status === "Active" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"
-                            }`}>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[8px] uppercase font-black tracking-wider ${c.status === "Active" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"
+                              }`}
+                          >
                             {c.status === "Active" ? "Active" : "Redeemed"}
                           </span>
                         </td>
@@ -326,7 +435,6 @@ export default function TicketsAdmin() {
               </table>
             </div>
           </div>
-
         </div>
       )}
 
