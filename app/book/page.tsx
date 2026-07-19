@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Clock, Users, Ticket, CheckCircle, Loader2, Tag } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Ticket, CheckCircle, Loader2, Tag, Lock } from "lucide-react";
 import Image from "next/image";
 import RegistrationModal from "@/components/events/RegistrationModal";
 import TicketStatusFloat from "@/components/events/TicketStatusFloat";
@@ -23,6 +23,9 @@ const baseEvents = [
 ];
 
 export default function BookPage() {
+  // MASTER TOGGLE: Set to true to instantly seal all reservations and close booking channels
+  const isBookingClosed = true;
+
   const [events, setEvents] = useState(baseEvents.map(e => ({ ...e, available: e.maxCapacity })));
   const [selectedEvent, setSelectedEvent] = useState<typeof baseEvents[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,7 +57,8 @@ export default function BookPage() {
       }
     } catch (e) {
       console.error("Capacity sync failure:", e);
-    } finally {
+    } // Removed unused variable in final block execution path to comply with linters
+    finally {
       setLoadingSlots(false);
     }
   }, []);
@@ -73,6 +77,11 @@ export default function BookPage() {
   }, [syncLiveCapacityPools]);
 
   const handleOpenBooking = (event: typeof baseEvents[0]) => {
+    if (isBookingClosed) {
+      alert("Registration Closed: Ticket booking window for this event has permanently ended.");
+      return;
+    }
+
     const activeUser = localStorage.getItem("prodigy_user_session");
 
     if (!activeUser) {
@@ -99,7 +108,7 @@ export default function BookPage() {
 
   const handleValidateCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!couponCode.trim() || isValidating) return;
+    if (isBookingClosed || !couponCode.trim() || isValidating) return;
 
     setCouponError(null);
     setIsValidating(true);
@@ -171,7 +180,7 @@ export default function BookPage() {
           {events.map((event, index) => {
             const hasDiscount = event.numericPrice > 0 && discountAmount > 0;
             const liveComputedPrice = Math.max(0, event.numericPrice - discountAmount);
-            const isSoldOut = event.available <= 0;
+            const isSoldOut = event.available <= 0 || isBookingClosed;
 
             return (
               <motion.div
@@ -186,7 +195,9 @@ export default function BookPage() {
                     <Image src={event.image} alt={event.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
                   )}
                   <div className="absolute top-4 left-4 px-4 py-2 bg-[#3B2A26] text-[#D4AF37] text-xs font-bold uppercase tracking-widest flex flex-col items-start gap-0.5">
-                    {isSoldOut ? (
+                    {isBookingClosed ? (
+                      <span className="text-red-400 flex items-center gap-1"><Lock size={10} /> Closed</span>
+                    ) : isSoldOut ? (
                       <span className="text-red-400">Sold Out</span>
                     ) : hasDiscount ? (
                       <>
@@ -209,12 +220,12 @@ export default function BookPage() {
                       <div className="flex items-center gap-3 text-[#3B2A26]/80 text-[10px] uppercase tracking-widest"><Clock size={14} className="text-[#D4AF37]" /> {event.time}</div>
                       <div className="flex items-center gap-3 text-[#3B2A26]/80 text-[10px] uppercase tracking-widest"><MapPin size={14} className="text-[#D4AF37]" /> {event.location}</div>
                       <div className={`flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold ${isSoldOut ? 'text-red-600' : 'text-[#3B2A26]/80'}`}>
-                        <Users size={14} className="text-[#D4AF37]" /> {event.available} Slots Left
+                        <Users size={14} className="text-[#D4AF37]" /> {isBookingClosed ? "0" : event.available} Slots Left
                       </div>
                     </div>
                   </div>
 
-                  {event.numericPrice > 0 && !isSoldOut && (
+                  {event.numericPrice > 0 && !isSoldOut && !isBookingClosed && (
                     <div className="max-w-md border-t border-[#3B2A26]/10 pt-6 mb-2">
                       {appliedCoupon ? (
                         <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-sm px-4 py-3 text-green-800">
@@ -258,10 +269,12 @@ export default function BookPage() {
 
                   <button
                     onClick={() => handleOpenBooking(event)}
-                    disabled={isReserved.includes(event.id) || isSoldOut}
+                    disabled={isReserved.includes(event.id) || isSoldOut || isBookingClosed}
                     className="w-full sm:w-fit px-12 py-4 bg-[#3B2A26] text-[#F5E9DA] text-[10px] uppercase tracking-[0.4em] font-black hover:bg-[#D4AF37] hover:text-[#3B2A26] transition-all flex items-center justify-center gap-3 cursor-pointer disabled:bg-stone-400 disabled:cursor-not-allowed"
                   >
-                    {isSoldOut ? (
+                    {isBookingClosed ? (
+                      "Booking Closed"
+                    ) : isSoldOut ? (
                       "Event Full"
                     ) : isReserved.includes(event.id) ? (
                       <> <CheckCircle size={14} /> Reservation Sent </>
